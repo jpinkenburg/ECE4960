@@ -1,3 +1,6 @@
+<style>
+    ul li { margin-bottom: 10px; }
+</style>
 <Center> <h1>About Me</h1></Center>
 Hi! My name is Jade and I'm super excited to take this class! Here are some (hopefully) fun facts about me:
 <li> I'm currently a junior studying ECE and minoring in robotics </li>
