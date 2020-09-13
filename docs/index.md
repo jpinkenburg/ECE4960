@@ -13,5 +13,5 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
 <li> I'm trying to learn how to cook and don't consider myself so bad at it, but my smoke detector begs to differ </li>
 
 <Center> <h1> Lab 1 </h1>
-    <h2> The Artemis Board </h2> </Center>
+    <h2> <i> The Artemis Board </i></h2> </Center>
 
