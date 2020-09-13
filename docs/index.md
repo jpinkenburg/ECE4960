@@ -15,3 +15,4 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
 <Center> <h1> Lab 1 </h1>
     <h2> <i> The Artemis Board </i></h2> </Center>
 
+<h2 style="color: green;"> Hello </h2>
