@@ -33,5 +33,5 @@ Another cool feature of the Artemis board is its onboard battery charger. When t
 if(ui32LoudestFrequency >= 500){digitalWrite(LED_BUILTIN,HIGH);}
   else{digitalWrite(LED_BUILTIN,LOW);}
 ```
-<img src="/docs/lipo.jpg" alt="Battery"><br>
+<img src="lipo.jpg" alt="Battery"><br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/MvvlOql-GQY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
