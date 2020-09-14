@@ -23,8 +23,8 @@ To be able to program the Artemis board, I first had to configure my Arduino IDE
 ++Insert Video Here++<br>
 <b> Analog Tests: </b> To determine if the board is able to measure analog values, I ran the 'Example4_analogRead' program that reads an onboard temperature sensor and prints the output on the Arduino IDE via serial. In the video below, we can see the temperature of the board increase as I hold it close to my overheating laptop. <br>
 <figure class="video_container">
-  <video controls="true" allowfullscreen="true" poster="path/to/poster_image.png">
-    <source src="Test.MOV" type="video/mov">
+  <video controls="true" allowfullscreen="true">
+    <source src="/docs/Test.mp4" type="video/mp4">
   </video>
 </figure>
 <b> Microphone Test: </b> To see if the onboard microphone is functional, I uploaded the 'Example1_MicrophoneOuput' program that identifies the loudest frequency heard by the microphone. As seen in the video below, the loudest frequency changes with the pitch of the whistled tone.<br>
