@@ -27,6 +27,7 @@ To be able to program the Artemis board, I first had to configure my Arduino IDE
     <source src="/docs/Test.mp4" type="video/mp4">
   </video>
 </figure>
+![Test](/docs/lipo.jpg)
 <b> Microphone Test: </b> To see if the onboard microphone is functional, I uploaded the 'Example1_MicrophoneOuput' program that identifies the loudest frequency heard by the microphone. As seen in the video below, the loudest frequency changes with the pitch of the whistled tone.<br>
 ++Insert Video Here++<br>
 
