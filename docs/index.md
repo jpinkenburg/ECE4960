@@ -22,11 +22,7 @@ To be able to program the Artemis board, I first had to configure my Arduino IDE
 <b> Serial Output: </b> To test if serial communication worked between my laptop and the Artemis board, I uploaded the provided 'Example2_Serial' program. As seen in the video below, the board was able to receive keyboard input from the laptop, process it, and print statements on my screen via the serial interface.<br>
 ++Insert Video Here++<br>
 <b> Analog Tests: </b> To determine if the board is able to measure analog values, I ran the 'Example4_analogRead' program that reads an onboard temperature sensor and prints the output on the Arduino IDE via serial. In the video below, we can see the temperature of the board increase as I hold it close to my overheating laptop. <br>
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true">
-    <source src="/docs/Test.mp4" type="video/mp4">
-  </video>
-</figure><br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/1t-gQvpS2A4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 ![test](/docs/lipo.jpg)<br>
 <b> Microphone Test: </b> To see if the onboard microphone is functional, I uploaded the 'Example1_MicrophoneOuput' program that identifies the loudest frequency heard by the microphone. As seen in the video below, the loudest frequency changes with the pitch of the whistled tone.<br>
 ++Insert Video Here++<br>
