@@ -30,4 +30,4 @@ To be able to program the Artemis board, I first had to configure my Arduino IDE
 Another cool feature of the Artemis board is its onboard battery charger. When the LiPo battery is connected to the board while plugged into a laptop via USB-C, the board is able to charge the battery (indicated by the yellow light in the image below). When the board is disconnected from the computer, it is able to source power from the battery; this can be seen in the video below, in which the board turns on the blue built in LED when it detects a tone being whistled.<br>
 ![Picture](/docs/lipo.jpg)<br>
 <img src="/docs/lipo.jpg" alt="Italian Trulli"><br>
-++Insert Video++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/MvvlOql-GQY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
