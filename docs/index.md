@@ -17,7 +17,7 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
 
 <h3 style="color: green;"> Setup </h3>
 To be able to program the Artemis board, I first had to configure my Arduino IDE to install the required libraries. After installing everything, I checked that the programmer was functional by uploading the provided 'Blink It Up' program - as shown in the video below, the board exhibited the expected behavior (built in blue LED toggles every second).
-++Insert Video Here++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OfnUbPsn1BE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>
 <h3 style="color: green;"> Example Programs </h3>
 <b> Serial Output: </b> To test if serial communication worked between my laptop and the Artemis board, I uploaded the provided 'Example2_Serial' program. As seen in the video below, the board was able to receive keyboard input from the laptop, process it, and print statements on my screen via the serial interface.<br>
 ++Insert Video Here++<br>
