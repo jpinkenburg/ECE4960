@@ -37,6 +37,8 @@ if(ui32LoudestFrequency >= 500){digitalWrite(LED_BUILTIN,HIGH);}
 <img src="lipo.jpg" alt="Battery"><br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/MvvlOql-GQY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+<br> <br>
+
 <Center> <h1> Lab 2 </h1>
     <h2> <i> Bluetooth Communication </i></h2> </Center>
 
@@ -56,7 +58,7 @@ In this code snippet, the program records the time difference between pongs and 
 <img src="reg_histo.png" alt="Regular RT Histogram"><br>
 The average round-trip ping time was 0.1185 seconds with a standard deviation of 0.0095 seconds with a total of 500 datapoints collected. Interestingly, the data seems to be bimodal in a sense - the majority of times are centered around ~.1125 seconds, but there's a second significant cluster at around 0.13 seconds. 
 This test was performed with the artemis board right next to my laptop. To see how the round-trip time varies with distance, I left the board on my porch and pinged it with my laptop from across the street - results can be seen below: <br>
-<img src="dist_histo.png" alt="Distance RT Histogram"><br>
+<img src="dist_histo.png" alt="Distance RT Histogram"><br> 
 The average RT ping time in this case was 0.145 seconds with a standard deviation of 0.034 seconds, also with 500 datapoints collected. As with the last trial, the data also seems to be bimodal in a sense (although it's shifted right and a bit less apparent), but the distribution is a fair bit smoother than in the previous. Personally I thought that the bluetooth communication would be a decent bit slower from ~20 ft away, but I was suprised to see that the difference in average RT time did not differ by such a large margin (only about ~0.03 sec slower on average from a distance).
 
 <h3 style="color: green;"> Command Framework Modifications </h3>
