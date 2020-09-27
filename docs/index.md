@@ -12,8 +12,7 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
  
 <li> I'm trying to learn how to cook and don't consider myself so bad at it, but my smoke detector begs to differ </li>
 
-<Center> <h1> Lab 1 </h1>
-    <h2> <i> The Artemis Board </i></h2> </Center>
+<Center> <h1> Lab 1: The Artemis Board </h1> </Center>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 To be able to program the Artemis board, I first had to configure my Arduino IDE to install the required libraries. After installing everything, I checked that the programmer was functional by uploading the provided 'Blink It Up' program - as shown in the video below, the board exhibited the expected behavior (built in blue LED toggles every second).
@@ -39,8 +38,7 @@ if(ui32LoudestFrequency >= 500){digitalWrite(LED_BUILTIN,HIGH);}
 
 <br> <br>
 
-<Center> <h1> Lab 2 </h1>
-    <h2> <i> Bluetooth Communication </i></h2> </Center>
+<Center> <h1> Lab 2: Bluetooth Communication </h1>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 I had a little trouble setting up the bluetooth on the provided ECE4960 Ubuntu VM, so I just opted to use my windows machine for the entirety of this lab. To enable bluetooth communication with the Artemis board, I installed the necessary python library (bleak) using pip. I also downloaded the provided distribution code (python scripts and Arduino IDE code) as a starting point for this lab.<br>
@@ -92,7 +90,7 @@ I also tried the same thing but with sending 4x the amount of data in a packet (
 To expand on the command framework, I added a command that transmits 9 floats as provided by the IMU (should be convenient later). I also added some commands to transfer larger PNG files (described below). To do this I had to modify both constants.py and commands.h
 
 
-<h3 style="color: green;"> 2+ KB File Transfer</h3>
+<p style="color: green;font-size:18px"> <b> 2+ KB File Transfer </b> </p>
 Unfortunately, I did not have enough time to fully complete this optional part of the lab (somehow prelims are starting already!). However, my original idea was to bounce a PNG image bytearray between the two devices and see how the final image looked. To do this, I expanded the framework to include PNG_START_TRANSMIT and PNG_IMG commands that indicated when a file transfer starts and was in progress. Because the full file would have to be distributed across multiple packets, the cmd->length would be the packet number, and the file size would be indicated by the START_TRANSMIT command.
 ```C
 case PNG_IMG_START:{
@@ -107,9 +105,9 @@ case PNG_IMG:{
 ```
 <br> <br>
 
-<h1> <Center> Lab 3: Characterizing the Robot </Center> </h1>
+<h1> <Center> Lab 3: Characterizing the Robot</h1> <br>
 
-<p style = "color: green; font-size: 18px;"> <b> 3a: Characterizing the Physical Robot </b> </p> <br>
+<p style = "color: green; font-size: 18px;"> <b> 3a: Characterizing the Physical Robot </b> </p> </Center><br>
 <i> For this portion of the lab, I worked together with Katie Bradford and Emily Wang </i> <br>
 
 To characterize the physical robot, we first started by measuring the mass and physical dimensions of the robot. Using a scale, we measured the robot to be 45.9g without the battery and 54.0g with the battery. Using a tape measure, we approximated the dimensions to be {x,y,z}. None of us were able to sit in front of the charger for several hours to time how long it takes for the battery to recharge (we prefer watching paint dry tbh, it's much more exciting), but according to the robot manual, it takes approximately 5 hours for a full charge once the battery has been used a few times. Battery lifetime is {} <br>
