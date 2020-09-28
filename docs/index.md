@@ -38,7 +38,7 @@ if(ui32LoudestFrequency >= 500){digitalWrite(LED_BUILTIN,HIGH);}
 
 <br> <br>
 
-<Center> <h1> Lab 2: Bluetooth Communication </h1>
+<Center> <h1> Lab 2: Bluetooth Communication </Center></h1>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 I had a little trouble setting up the bluetooth on the provided ECE4960 Ubuntu VM, so I just opted to use my windows machine for the entirety of this lab. To enable bluetooth communication with the Artemis board, I installed the necessary python library (bleak) using pip. I also downloaded the provided distribution code (python scripts and Arduino IDE code) as a starting point for this lab.<br>
