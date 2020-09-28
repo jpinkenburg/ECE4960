@@ -105,7 +105,7 @@ case PNG_IMG:{
 ```
 <br> <br>
 
-<h1> <Center> Lab 3: Characterizing the Robot</h1> <br>
+<h1> <Center> Lab 3: Characterizing the Robot </Center> </h1> <br>
 
 <p style = "color: green; font-size: 18px;"> <b> 3a: Characterizing the Physical Robot </b> </p> </Center><br>
 <i> For this portion of the lab, I worked together with Katie Bradford and Emily Wang </i> <br>
