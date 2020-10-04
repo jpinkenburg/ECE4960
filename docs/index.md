@@ -217,3 +217,6 @@ Data:
         <td> 63 </td>
     </tr>
 </table>
+Right Wheel: Mean = 61.5, SD = 4.78  (distribution is kinda skewed right)<br>
+Left Wheel: Mean = 60.4, SD = 2.80 <br>
+Both Wheels: Mean = 60.2, SD = 2.14 <br>
