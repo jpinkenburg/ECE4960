@@ -141,5 +141,79 @@ By clicking on the robot, the simulation shows the robot's cooridinates (x,y,z,t
 When playing around with the simulator, I found out that clicking on the simulation window and pressing some keys did some interesting things. For example, pressing 'o' showed previous places that the robot visited; these markers would disappear over time. Right clicking and dragging would turn the map into a 3d world and showed that the 'robot' was simply an extruded hexagon. Pressing 'd' put a line of sight cone in front of the robot. 'f' centers the image on the robot and 'g' gets rid of the checkered squares in the background. My favorite change happened while pressing 'r', which put the camera in the frame of the robot, letting the user explore the maze from the robot's perspective. 'p' also pauses the simulation, and 'c' clears away the details in the bottom of the screen. Below is a video of the virtual robot navigating the obstacle course! <br>
 
 <iframe width="766" height="394" src="https://www.youtube.com/embed/X6ZZOyAG-jA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<br><br>
 
-
+<h1> <Center> Lab 4: Open Loop Control </Center></h1>
+<p style = "color: green; font-size: 18px;"> Part (a): Physical Robot Control </p>
+After assembling the robot, I played around with the code parameters to try and achieve open loop control over the robot. To start, I first modified the example MotorTest code to drive the correct motors and I had to flip some wires around to make each set of wheels turn in the same direction when the motor power was set as positive. To test the 'turn-on power' of the motors, I wrote a short program that incremented the motor speed and printed it to serial; the motors were turned off via serial commands as well as to not waste battery life. The speed that the motors started rotating was recorded and this was performed 10 times (in each trial, both motor speeds were incremented and their turn on power was noted) - see data and code below!
+```C
+  int i=50;
+  while(i<256){
+    Serial.println(i);
+    myMotorDriver.setDrive( 0, 0, i);
+    myMotorDriver.setDrive( 1, 0, i);
+    int startTime = millis();
+    while(millis() - startTime < 500){
+      if(Serial.available()){i=500; Serial.println("MOTORS OFF"); break;}
+    }
+    i++;
+  }
+```
+Data:
+<table> 
+    <tr>
+        <th> Left Wheel </th>
+        <th> Right Wheel </th>
+        <th> Both Wheels </th>
+    </tr>
+    <tr>
+        <td> 62 </td>
+        <td> 55 </td>
+        <td> 62 </td>
+    </tr>
+    <tr>
+        <td> 59 </td>
+        <td> 61 </td>
+        <td> 64 </td>
+    </tr>
+    <tr>
+        <td> 62 </td>
+        <td> 67 </td>
+        <td> 59 </td>
+    </tr>
+    <tr>
+        <td> 59 </td>
+        <td> 63 </td>
+        <td> 59 </td>
+    </tr>
+    <tr>
+        <td> 61 </td>
+        <td> 68 </td>
+        <td> 57 </td>
+    </tr>
+    <tr>
+        <td> 60 </td>
+        <td> 59 </td>
+        <td> 60 </td>
+    </tr>
+    <tr>
+        <td> 60 </td>
+        <td> 59 </td>
+        <td> 59 </td>
+    </tr>
+    <tr>
+        <td> 56 </td>
+        <td> 56 </td>
+        <td> 58 </td>
+    </tr>
+    <tr>
+        <td> 67 </td>
+        <td> 69 </td>
+        <td> 61 </td>
+    </tr>
+    <tr>
+        <td> 58 </td>
+        <td> 58 </td>
+        <td> 63 </td>
+    </tr>
+</table>
