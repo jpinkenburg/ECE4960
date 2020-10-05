@@ -145,7 +145,7 @@ When playing around with the simulator, I found out that clicking on the simulat
 
 <h1> <Center> Lab 4: Open Loop Control </Center></h1>
 <p style = "color: green; font-size: 18px;"> Part (a): Physical Robot Control </p>
-After assembling the robot, I played around with the code parameters to try and achieve open loop control over the robot. To start, I first modified the example MotorTest code to drive the correct motors and I had to flip some wires around to make each set of wheels turn in the same direction when the motor power was set as positive. To test the 'turn-on power' of the motors, I wrote a short program that incremented the motor speed and printed it to serial; the motors were turned off via serial commands as well as to not waste battery life. The speed that the motors started rotating was recorded and this was performed 10 times (in each trial, both motor speeds were incremented and their turn on power was noted) - see data and code below!
+After assembling the robot, I played around with the code parameters to try and achieve open loop control over the robot. To start, I first modified the example MotorTest code to drive the correct motors and I had to flip some wires around to make each set of wheels turn in the same direction when the motor power was set as positive. To test the 'turn-on power' of the motors, I wrote a short program that incremented the motor speed and printed it to serial; the motors were turned off via serial commands as well as to not waste battery life. The speed that the motors started rotating was recorded and this was performed 10 times (in each trial, both motor speeds were incremented and their turn on power was noted). This was performed in two ways: in one set of trials, I kept the wheels of the robot off the ground and recorded the turn on power for each motor. In another set, the robot was placed on the ground and the power at which it started moving forwards; a speed for each motor could not be determined because one set of wheels rolling forward caused the wheels on the other side to start moving and the motors no longer had to overcome the higher force of static friction. Check out the code and data below! <br>
 ```C
   int i=50;
   while(i<256){
@@ -220,3 +220,54 @@ Data:
 Right Wheel: Mean = 61.5, SD = 4.78  (distribution is kinda skewed right)<br>
 Left Wheel: Mean = 60.4, SD = 2.80 <br>
 Both Wheels: Mean = 60.2, SD = 2.14 <br>
+<br>
+Surprisingly, the average turn on power for both wheels on the ground was less than both the wheels in the air; this might be because the turn on power for the robot on the ground is essentially the minimum of the two motor powers for that trial (since one wheel turning gives the other the 'kick' it needs to overcome friction). It also has a much tighter spread than either wheel.
+<br>
+Luckily, my motors spun at the same rate so I didn't have to include a calibration factor for the robot to drive in a reasonably straight line - check out the video below!
+<br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PC5nmNpBbzM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<br>
+
+To achieve open-loop control, I first tried to make the robot just drive in a square (wanted to see how it compares to part B). This was done by simply driving the robot forwards for 0.7 seconds and then turning the robot by reversing the direction of the wheels for 0.3 seconds. See the code snippet and video below! stopMotor() is a function that just turns off both motors for 0.1 seconds - it seemed to help the robot turn slightly more precisely. <br>
+```C
+myMotorDriver.setDrive(0,0,sp);
+myMotorDriver.setDrive(1,0,sp);
+delay(700);
+stopMotor();
+myMotorDriver.setDrive(1,0,sp*2);
+myMotorDriver.setDrive(0,1,sp*2);
+delay(300);
+stopMotor();
+```
+{INSERT VIDEO HERE} <br>
+For fun, I also tried to make the robot travel in a straight line where the speed was dependent on the highest frequency sound that it recorded; this proved to be a bit more difficult than I thought, since the ambient frequency that it detected was somehow higher than the pitches I can whistle. I tried doing some basic filtering, but the robot speed ended up being quite erratic. To obtain the sound frequency, I just modified the printLoudest() function in the microphone example code to return a value rather than just print it to serial. Check out the code below!
+```C
+  if (myPDM.available())
+  {
+    myPDM.getData(pdmDataBuffer, pdmDataBufferSize);
+
+    freq = printLoudest();
+  }
+  if (freq < 2000 && freq != 0){
+    sp = 255.0*((float)freq/2000.0);
+    myMotorDriver.setDrive(0,0,sp);
+    myMotorDriver.setDrive(1,0,sp);
+  }
+``` <br> <br>
+
+<p style = "color: green; font-size: 18px;"> Part (b): Virtual Robot Control </p>
+For this lab, I kept the virtual open loop controller very simple. To make the robot drive in a rectangular path, I programmed it to just drive straight and turn for certain amounts of time at a given speed (so that it goes approximately 90 deg on each turn and the straight segments are of equal length). This is open loop control because the control actions given to the system have no dependence on the system's output (i.e. the robot's location or orientation); as a result, while this form of control may be more computationally efficient than closed loop control, it is much more inaccurate if there are sources of error in the system (which there are in this lab - there is some error associated with the speed of the virtual robot). I chose to use a time-dependent control system to avoid any dependence on the output; it also allowed me to see how much the errors accumulate over time - something that may be nice to know for future labs. Since the robot velocity could be set very easily using the provided set_vel function, it also made the most sense with the given implementation. Check out the code and video below to see my implementation of simple open loop control! <br>
+```Python
+import math
+linSpeed = 0.2
+angSpeed = math.pi/4
+lin = True
+
+while True:
+    curTime = time.time()
+    robot.set_vel(linSpeed*lin,angSpeed*(not lin))
+    while time.time() - curTime < 2:
+        pass
+    lin = not lin
+``` <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/3cZTaRoUcsA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
