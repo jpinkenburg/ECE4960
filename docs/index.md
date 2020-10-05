@@ -245,7 +245,6 @@ For fun, I also tried to make the robot travel in a straight line where the spee
   if (myPDM.available())
   {
     myPDM.getData(pdmDataBuffer, pdmDataBufferSize);
-
     freq = printLoudest();
   }
   if (freq < 2000 && freq != 0){
@@ -253,7 +252,8 @@ For fun, I also tried to make the robot travel in a straight line where the spee
     myMotorDriver.setDrive(0,0,sp);
     myMotorDriver.setDrive(1,0,sp);
   }
-``` <br> <br>
+``` 
+<br> <br>
 
 <p style = "color: green; font-size: 18px;"> Part (b): Virtual Robot Control </p>
 For this lab, I kept the virtual open loop controller very simple. To make the robot drive in a rectangular path, I programmed it to just drive straight and turn for certain amounts of time at a given speed (so that it goes approximately 90 deg on each turn and the straight segments are of equal length). This is open loop control because the control actions given to the system have no dependence on the system's output (i.e. the robot's location or orientation); as a result, while this form of control may be more computationally efficient than closed loop control, it is much more inaccurate if there are sources of error in the system (which there are in this lab - there is some error associated with the speed of the virtual robot). I chose to use a time-dependent control system to avoid any dependence on the output; it also allowed me to see how much the errors accumulate over time - something that may be nice to know for future labs. Since the robot velocity could be set very easily using the provided set_vel function, it also made the most sense with the given implementation. Check out the code and video below to see my implementation of simple open loop control! <br>
