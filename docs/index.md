@@ -274,3 +274,44 @@ while True:
 ``` 
 <br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/3cZTaRoUcsA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<br><br>
+
+<Center><h1> Lab 5: Obstacle Avoidance </h1></Center>
+<p style = "color: green; font-size: 18px;"> Prelab </p>
+1: Proximity Sensors (passive?) <br>
+2: Active TOF sensors - use measured time between photon detection and emission to calculate distance to object <br>
+<br>
+<p style = "color: green; font-size: 18px;"> Part (a): Physical Obstacle Avoidance </p>
+I2C Address: 0x60 - expected bc it's given as the slave address in the datasheet.
+Red shiny box
+10cm = [192,263,513]
+9cm: [208,244,493]
+8cm: [269,225,470]
+7cm: [337,199,440]
+6cm: [469,171,414]
+5cm: [666,132,382]
+4cm: [1108,114,362]
+3cm: [2302,96,346]
+2cm: [5702,95,372]
+1cm: [35822,95,312]
+Regression - 
+Black box:
+10cm: [27,143,343]
+9cm: [35,126,321]
+8cm: [42,104,237]
+7cm: [49,74,120]
+6cm: [77,50.74]
+5cm: [122,35,55]
+4cm: [152,16,26]
+3cm: [373,9,12]
+2cm: [610,4,12]
+1cm: [4383,5,19]
+way less
+
+Maybe try with rougher surface
+cover up red LED & repeat
+Try shining flashlight in between
+
+Sources of error:
+Box may have been slightly angled - makes big difference at lower thangs
+
