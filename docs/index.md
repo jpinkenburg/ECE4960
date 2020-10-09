@@ -315,3 +315,5 @@ Try shining flashlight in between
 Sources of error:
 Box may have been slightly angled - makes big difference at lower thangs
 
+<b> TOF Sensor </b>
+I2C Addresss: 0x29. Sensor datasheet claims that the address is 0x52, but 0x29 is just 0x52 shifted right! I2C addresses are only 7 bits long. LSB is not part of the address!
