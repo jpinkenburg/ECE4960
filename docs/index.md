@@ -317,3 +317,10 @@ Box may have been slightly angled - makes big difference at lower thangs
 
 <b> TOF Sensor </b>
 I2C Addresss: 0x29. Sensor datasheet claims that the address is 0x52, but 0x29 is just 0x52 shifted right! I2C addresses are only 7 bits long. LSB is not part of the address!
+<br>
+Used the graph paper to see how accurate the TOF sensor is - was pretty close but I wanted to try the calibration anyway. Provided calibration code didn't work, so I had to modify it to add the distanceSensor.startRanging() command so it would start measuring. Offset provided by the calibration actually made it worse, so I just stuck with the regular sensor measurement, which was pretty accurate given the errors (For 25 measurements with real distance = 100 mm, mean = 99.28, stdev = 2.05)
+<br>
+setInterMeasurementPeriod() defines the delay between measurements - saves power. setTimingBudgetinMs sets the time required to perform range measurement.
+Tried to vary each one at a time - for default inter measurement period: timing budget of 1000ms => (mean=103.0,std=1.44), 200 ms => (mean = 106.2,std=0.95), 20 ms => (mean=74.0,std=5.71). Measurements significantly faster for 20 ms, but are way more inaccurate. Not much of a difference for 1000ms and 200ms, but this might be because the intermeasurement time may be insignificant comepared to the timing budget.
+For default timing budget <br>
+Trade off between measurement time and accuracy - robot travels around 2 m/s, probably want an updated measurement every 10-20 cm since the sensor isn't that accurate => sensor update 10x/second. Try 50 ms intermeasurement time, 50 ms timing budget
