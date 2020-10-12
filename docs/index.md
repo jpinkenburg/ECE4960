@@ -278,13 +278,13 @@ while True:
 
 <Center><h1> Lab 5: Obstacle Avoidance </h1></Center>
 <p style = "color: green; font-size: 18px;"> Prelab </p>
-There are quite a few types of infrared distance sensors available for use in low cost robots these days, but there are two main types of infrared sensors: proximity sensors and time-of flight sensors (which are coincidentally the ones we use in this lab - who would've thought!)
-1: Proximity Sensors - work by emitting an infrared beam that gets reflected off of nearby objects. When the reflected light arrives at the detector, the sensor uses the characteristics of the reflected light to reconstruct the position of the object. Proximity sensors are quite good at determining if an object is present within a given range, but does not give very accurate estimates of an object's position. Measurements are also more strongly affected by the environment (ambient light, color, etc.).
+There are quite a few types of infrared distance sensors available for use in low cost robots these days, but there are two main types of infrared sensors: proximity sensors and time-of flight sensors (which are coincidentally the ones we use in this lab - who would've thought!)<br>
+1: Proximity Sensors - work by emitting an infrared beam that gets reflected off of nearby objects. When the reflected light arrives at the detector, the sensor uses the characteristics of the reflected light to reconstruct the position of the object. Proximity sensors are quite good at determining if an object is present within a given range, but does not give very accurate estimates of an object's position. Measurements are also more strongly affected by the environment (ambient light, color, etc.). <br>
 2: Active TOF sensors - work by measuring the time that it takes for an emitted wave to reflect off a target and be detected by the sensor. These readings are much more accurate than the proximity sensors and have a significantly larger range, but are a bit more costly. Ambient light may also have an effect on sensor readings.<br>
 Because the TOF sensor is more accurate, it may be more useful to put it in the front of the robot while driving. It may be advantageous to put the proximity sensor in the back of the robot for short uses and to see if there are any obstacles behind the robot when reversing. The robot may miss obstacles while turning quickly or if objects jut out and clip them on the side / on the wheels; somewhat of a side-to-side motion while driving may help detect objects within the robot's path.
 <br>
-<p style = "color: green; font-size: 18px;"> Part (a): Physical Obstacle Avoidance </p>
-<b> Proximity Sensor </b>
+<Center><p style = "color: green; font-size: 18px;"> Part (a): Physical Obstacle Avoidance </p></Center>
+<Center> <b> Proximity Sensor </b> </Center><br>
 When I ran the example code that scans all of the I2C addresses, I found that the proximity sensor was at address 0x60. This was expected, as it is the same I2C address listed on the provided datasheet. To test the proximity sensor, I taped it to a box and recorded measurments of several targets at numerous distances away to see how the proximity values differed for different colors (red,black) and lighting conditions ('dim'/normal lighting and 'bright', where I shone my phone flashlight on the experimental setup). The results are summarized in the graph below!
 
 <img src="proxImg.png" alt="Graph"><br>
@@ -333,7 +333,7 @@ According to the datasheet, sigma is the estimated standard deviation of the mea
 
 <br><br>
 
-<b> Working with the Robot </b>
+<Center><b> Working with the Robot </b></Center><br>
 To attach all the sensors onto the robot, I used an interesting combination of cardboard and masking tape in order to secure all of the electronic components onto the robot frame. I also daisy chained all of the sensors together (including the motor drivers) and connected it to the Artemis board via QWIIC connectors. Once I made sure that I could control the motors and read the TOF data without any issues, I tried implementing a few steering algorithms to see which ones would be most effective in avoiding obstacles. <br>
 To start, I decided to be ambitious and implement a steering algorithm that gave the robot a base speed and applied a correction factor to each of the motor speeds that depended on the distance between the robot and the object in front of it. This would cause the robot to turn more quickly when it is closer to an object, and go more straight when objects in front of it are relatively distant. Unfortunately, it proved to be fairly difficult to tune the correction factor so that the robot actually behaved as expected - check out a video of the robot failing below! <br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/jbE9EMnXJCk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
@@ -365,7 +365,7 @@ else{
 For future labs that have a similar goal, I would like to try and implement the more complicated steering algorithms that I described above. It would also be interesting to work with average sensor measurements to try and reduce the impact of errors on the motion of the robot, and see how the increased time between averages would impact the robot's performance. It would also be interesting to integrate the other sensors on the robot (especially the proximity sensor! haven't really figured out what purpose it might serve, especially since it's on the same end of the robot as the TOF sensor, although possible reasons were discussed above). Unfortunately, I was unable to record a video of my robot going as fast as possible into a wall because the battery wires became disconnected from the header pins and I didn't have access to a soldering iron on Sunday - will try and fix Monday :/. In the code, the robot sped along at a 150 power and successfully avoided the wall; from Lab 3, we determined the maximum speed to be about 2.5 m/s - assuming the speed scales linearly with the motor power, this suggests that the robot was able to avoid the wall at a speed of 1.5 m/s.
 
 
-<p style = "color: green; font-size: 18px;"> Part (b): Virtual Obstacle Avoidance </p>
+<Center><p style = "color: green; font-size: 18px;"> Part (b): Virtual Obstacle Avoidance </p></Center>
 For this part of the lab, I used the provided Jupyter notebook file and simulation software to control the virtual robot in an attempt to avoid obstacles. To start, I decided to go with a fairly simple algorithm and then improve upon it along the way. Looking at the problem, I thought that a fairly simple obstacle avoidance algorithm would just increase the angular speed as the robot gets closer and closer to the wall; by turning at a speed inversely proportional to the distance to the wall, the robot should be able to turn in a different direction before it actually collides with the wall itself. To do this, I set the robot's velocity as follows: 
 ```Python
 dist = robot.get_laser_data()
