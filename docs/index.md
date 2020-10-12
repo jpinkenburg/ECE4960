@@ -282,120 +282,50 @@ while True:
 2: Active TOF sensors - use measured time between photon detection and emission to calculate distance to object <br>
 <br>
 <p style = "color: green; font-size: 18px;"> Part (a): Physical Obstacle Avoidance </p>
-When I ran the example code that scans all of the I2C addresses, I found that the proximity sensor was at address 0x60. This was expected, as it is the same I2C address listed on the provided datasheet. To test the proximity sensor, I taped it to a box and recorded measurments of several targets at numerous distances away to see how the proximity values differed for different colors and lighting conditions.
+<b> Proximity Sensor </b>
+When I ran the example code that scans all of the I2C addresses, I found that the proximity sensor was at address 0x60. This was expected, as it is the same I2C address listed on the provided datasheet. To test the proximity sensor, I taped it to a box and recorded measurments of several targets at numerous distances away to see how the proximity values differed for different colors (red,black) and lighting conditions ('dim'/normal lighting and 'bright', where I shone my phone flashlight on the experimental setup). The results are summarized in the graph below!
 
-Red Shiny Box:
-<table> 
-    <tr>
-        <th> Distance </th>
-        <th> Proximity Value </th>
-        <th> Ambient Light </th>
-        <th> Whiteness Reading </th>
-    </tr>
-    <tr>
-        <td> 10 cm </td>
-        <td> 192 </td>
-        <td> 263 </td>
-        <td> 513 </td>
-    </tr>
-    <tr>
-        <td> 9 cm </td>
-        <td> 208 </td>
-        <td> 244 </td>
-        <td> 493 </td>
-    </tr>
-    <tr>
-        <td> 8 cm </td>
-        <td> 269 </td>
-        <td> 225 </td>
-        <td> 470 </td>
-    </tr>
-    <tr>
-        <td> 7 cm </td>
-        <td> 337 </td>
-        <td> 199 </td>
-        <td> 440 </td>
-    </tr>
-    <tr>
-        <td> 6 cm </td>
-        <td> 469 </td>
-        <td> 57 </td>
-        <td> 263 </td>
-    </tr>
-    <tr>
-        <td> 60 </td>
-        <td> 59 </td>
-        <td> 60 </td>
-        <td> 263 </td>
-    </tr>
-    <tr>
-        <td> 60 </td>
-        <td> 59 </td>
-        <td> 59 </td>
-        <td> 263 </td>
-    </tr>
-    <tr>
-        <td> 56 </td>
-        <td> 56 </td>
-        <td> 58 </td>
-        <td> 263 </td>
-    </tr>
-    <tr>
-        <td> 67 </td>
-        <td> 69 </td>
-        <td> 61 </td>
-        <td> 263 </td>
-    </tr>
-    <tr>
-        <td> 58 </td>
-        <td> 58 </td>
-        <td> 63 </td>
-        <td> 263 </td>
-    </tr>
-</table>
+<img src="proxImg.png" alt="Graph"><br>
 
-Red shiny box
-10cm = [192,263,513]
-9cm: [208,244,493]
-8cm: [269,225,470]
-7cm: [337,199,440]
-6cm: [469,171,414]
-5cm: [666,132,382]
-4cm: [1108,114,362]
-3cm: [2302,96,346]
-2cm: [5702,95,372]
-1cm: [35822,95,312]
-Black box:
-10cm: [27,143,343]
-9cm: [35,126,321]
-8cm: [42,104,237]
-7cm: [49,74,120]
-6cm: [77,50.74]
-5cm: [122,35,55]
-4cm: [152,16,26]
-3cm: [373,9,12]
-2cm: [610,4,12]
-1cm: [4383,5,19]
-way less
-
-Maybe try with rougher surface
-cover up red LED & repeat
-Try shining flashlight in between
-
-Sources of error:
-Box may have been slightly angled - makes big difference at lower thangs
+As can be seen on the graph, ambient lighting conditions didn't seem to have such a large effect on the proximity reading at distances > 2-3 cm; however, as the proximity sensor got really close to the object, the external light had a more significant effect - this may be due to more reflection of the ambient light source that gets picked up by the sensor. Color had a much larger effect on the sensor reading - the black box had much lower measured proximity values than the red box; this may be due to the fact that black objects absorb light more than colored objects do. During testing, I also noticed that the proximity reading was quite sensitive to the angle of the sensor at closer distances; this may be because this increases the effective distance to the object (use triangle hypotenuse) and the sensor is very sensitive at such low distances. {calculate time between readings} <br>
 
 <b> TOF Sensor </b>
-I2C Addresss: 0x29. Sensor datasheet claims that the address is 0x52, but 0x29 is just 0x52 shifted right! I2C addresses are only 7 bits long. LSB is not part of the address!
+When scanning the I2C lines, the TOF sensor was detected at I2C Address 0x29. This was not expected, since the sensor datasheet claims that the address is 0x52 (or 0x53), but after some investigation, I found out that 0x29 is just 0x52 shifted right! This discrepancy most likely arises because I2C addresses are only 7 bits long - while the Arduino IDE just records these 7 bits, the datasheeet includes all 8, so we must shift it right since the LSB is not part of the address.
 <br>
-Used the graph paper to see how accurate the TOF sensor is - was pretty close but I wanted to try the calibration anyway. Provided calibration code didn't work, so I had to modify it to add the distanceSensor.startRanging() command so it would start measuring. Offset provided by the calibration actually made it worse, so I just stuck with the regular sensor measurement, which was pretty accurate given the errors (For 25 measurements with real distance = 100 mm, mean = 99.28, stdev = 2.05)
-<br>
-setInterMeasurementPeriod() defines the delay between measurements - saves power. setTimingBudgetinMs sets the time required to perform range measurement.
-Tried to vary each one at a time - for default inter measurement period: timing budget of 1000ms => (mean=103.0,std=1.44), 200 ms => (mean = 106.2,std=0.95), 20 ms => (mean=74.0,std=5.71). Measurements significantly faster for 20 ms, but are way more inaccurate. Not much of a difference for 1000ms and 200ms, but this might be because the intermeasurement time may be insignificant comepared to the timing budget.
-For default timing budget <br>
-Trade off between measurement time and accuracy - robot travels around 2 m/s, probably want an updated measurement every 10-20 cm since the sensor isn't that accurate => sensor update 10x/second. Try 50 ms intermeasurement time, 50 ms timing budget
+Before calibration, the sensor readings were slightly off and overshot the true value (mean of ~145mm for a true distance of 140mm). When I tried running the provided sensor calibration code, the sensor refused to provide any readings; after comparing it to some of the other functional examples, I added the distanceSensor.startRanging() command to fix the code. After successful calibration, the sensor seemed to be a fair bit more accurate (mean of about 140 for a true distance of 140 - see results below with the calibrated sensor). <br>
+
+{Insert Picture Here}
+
+To test the effects of the inter-measurement period and the timing budget, I kept one constant while manipulating the other. To start, I used an inter-measurement period of 500 and varied the timing budget between 20 (minimum) and 500 (since the inter-measurement period has to be >= timing budget). <br>
+
+For 25 measurements with an inter-measurement period of 500:<br>
+	TB = 20: mean = 121.4, SD = 7.34 <br>
+	TB = 50: mean = 142.04, SD = 2.06 <br>
+	TB = 100: mean = 144.8, SD = 1.23 <br>
+	TB = 200: mean = 145.5, SD = 0.75 <br>
+	TB = 500: mean = 146.6, SD = 0.48 <br>
+
+While the sensor becomes more accurate as the timing budget increases, there is a trade-off between accuracy and measurement frequency. Since the sensor was calibrated with a timing budget of 50 ms, different timing budgets have slightly different mean values, as seen above; interestingly, the mean measurement seems to increase with the timing budget. From lab 3, we saw that the robot travels at approximately 2-3 m/s; to have enough information about the state of the world, it would be nice to have the robot update its position every ~10 cm. For the position to update every 10cm at full speed with no latency in measurement time, the timing budget would have to be about 50 ms. This is a nice value to choose because the refresh rate is fairly quick and the precision of the measurements is not too bad (standard deviation of around 2 cm); the sensor being calibrated with this timing budget is also an added bonus!<br>
+
+I also attempted to determine the effect of the inter-measurement period on the TOF readings. To do this, I kept the timing budget at a constant 50ms while increasing the inter-measurement period starting at 50ms (since the period has to be greater/equal the budget). <br>
+
+For 25 measurements with an timing budget of 50 ms: <br>
+	IMP = 50: mean = 141.8, sd = 1.90 <br>
+	IMP = 100: mean = 141.2, sd = 1.75 <br>
+	IMP = 200: mean = 140.7, sd = 1.69 <br>
+	IMP = 500: mean = 141.52, sd = 1.42 <br>
+
+As seen above, there doesn’t seem to be a very significant difference between the different sets of measurements; while the standard deviation tends to decrease as we increase the inter-measurement period, this also slows down the times between sensor readings. Because the robot is moving fairly quickly, it seems as if the benefits gained by more frequent readings outweigh the drawbacks associated with the slightly larger variation in sensor measurements. <br>
+
+Since the goal of this lab is to have the robot avoid obstacles in my room, it seems as if the medium distance mode would be best suited for this effort, since my room isn’t even 4m across. The short distance mode limits the range of the sensor to 1.5m, which is a bit too short given the dimensions of my room. According to the datasheet, the main benefit of choosing a shorter distance mode is that the sensor is less sensitive to ambient light - because the lights in my room are not so bright and the light scattered about the room is fairly uniform, there may not be much of an advantage to choosing the short distance mode anyway. <br>
+	
+According to the datasheet, sigma is the estimated standard deviation of the measurement, and signal is the amplitude of the signal detected by the TOF sensor (that is reflected from the target). When I quickly place a target in front of the object, I get a ‘wrapped target fail’ error which, according to the datasheet, indicates that the phase (presumably of the emitted signal) does not match the received one. Occasionally when I quickly move the target out of the way, I get a ‘signal fail’ error, which indicates that the detected signal amplitude is below some preset threshold - this may mean that the sensor never receives the reflected beacon. These errors may be important to take into account during future labs because they represent a discontinuity in sensor measurement; for the mapping lab, if there is a very steep gradient in the room’s distance profile, the sensor may not be able to detect the boundary of an object with high precision. However, the proximity sensor we have is fairly good at detecting the presence of an object, so we can use it to detect the rapid presence of objects if the TOF sensor misses it.
+
 <br><br>
 
+<b> Working with the Robot </b>
+To attach all the sensors onto the robot, I used an interesting combination of cardboard and masking tape in order to secure all of the electronic components onto the robot frame. I also daisy chained all of the sensors together (including the motor drivers) and connected it to the Artemis board via QWIIC connectors. Once I made sure that I could control the motors and read the TOF data without any issues, I tried implementing a few steering algorithms to see which ones would be most effective in avoiding obstacles. <br>
+To start, I decided to be ambitious and implement a steering algorithm that gave the robot a base speed and applied a correction factor to each of the motor speeds that depended on the distance between the robot and the object in front of it. 
 
 <p style = "color: green; font-size: 18px;"> Part (b): Virtual Obstacle Avoidance </p>
 For this part of the lab, I used the provided Jupyter notebook file and simulation software to control the virtual robot in an attempt to avoid obstacles. To start, I decided to go with a fairly simple algorithm and then improve upon it along the way. Looking at the problem, I thought that a fairly simple obstacle avoidance algorithm would just increase the angular speed as the robot gets closer and closer to the wall; by turning at a speed inversely proportional to the distance to the wall, the robot should be able to turn in a different direction before it actually collides with the wall itself. To do this, I set the robot's velocity as follows: 
