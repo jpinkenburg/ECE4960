@@ -282,7 +282,78 @@ while True:
 2: Active TOF sensors - use measured time between photon detection and emission to calculate distance to object <br>
 <br>
 <p style = "color: green; font-size: 18px;"> Part (a): Physical Obstacle Avoidance </p>
-I2C Address: 0x60 - expected bc it's given as the slave address in the datasheet.
+When I ran the example code that scans all of the I2C addresses, I found that the proximity sensor was at address 0x60. This was expected, as it is the same I2C address listed on the provided datasheet. To test the proximity sensor, I taped it to a box and recorded measurments of several targets at numerous distances away to see how the proximity values differed for different colors and lighting conditions.
+
+Red Shiny Box:
+<table> 
+    <tr>
+        <th> Distance </th>
+        <th> Proximity Value </th>
+        <th> Ambient Light </th>
+        <th> Whiteness Reading </th>
+    </tr>
+    <tr>
+        <td> 10 cm </td>
+        <td> 192 </td>
+        <td> 263 </td>
+        <td> 513 </td>
+    </tr>
+    <tr>
+        <td> 9 cm </td>
+        <td> 208 </td>
+        <td> 244 </td>
+        <td> 493 </td>
+    </tr>
+    <tr>
+        <td> 8 cm </td>
+        <td> 269 </td>
+        <td> 225 </td>
+        <td> 470 </td>
+    </tr>
+    <tr>
+        <td> 7 cm </td>
+        <td> 337 </td>
+        <td> 199 </td>
+        <td> 440 </td>
+    </tr>
+    <tr>
+        <td> 6 cm </td>
+        <td> 469 </td>
+        <td> 57 </td>
+        <td> 263 </td>
+    </tr>
+    <tr>
+        <td> 60 </td>
+        <td> 59 </td>
+        <td> 60 </td>
+        <td> 263 </td>
+    </tr>
+    <tr>
+        <td> 60 </td>
+        <td> 59 </td>
+        <td> 59 </td>
+        <td> 263 </td>
+    </tr>
+    <tr>
+        <td> 56 </td>
+        <td> 56 </td>
+        <td> 58 </td>
+        <td> 263 </td>
+    </tr>
+    <tr>
+        <td> 67 </td>
+        <td> 69 </td>
+        <td> 61 </td>
+        <td> 263 </td>
+    </tr>
+    <tr>
+        <td> 58 </td>
+        <td> 58 </td>
+        <td> 63 </td>
+        <td> 263 </td>
+    </tr>
+</table>
+
 Red shiny box
 10cm = [192,263,513]
 9cm: [208,244,493]
@@ -294,7 +365,6 @@ Red shiny box
 3cm: [2302,96,346]
 2cm: [5702,95,372]
 1cm: [35822,95,312]
-Regression - 
 Black box:
 10cm: [27,143,343]
 9cm: [35,126,321]
@@ -324,3 +394,14 @@ setInterMeasurementPeriod() defines the delay between measurements - saves power
 Tried to vary each one at a time - for default inter measurement period: timing budget of 1000ms => (mean=103.0,std=1.44), 200 ms => (mean = 106.2,std=0.95), 20 ms => (mean=74.0,std=5.71). Measurements significantly faster for 20 ms, but are way more inaccurate. Not much of a difference for 1000ms and 200ms, but this might be because the intermeasurement time may be insignificant comepared to the timing budget.
 For default timing budget <br>
 Trade off between measurement time and accuracy - robot travels around 2 m/s, probably want an updated measurement every 10-20 cm since the sensor isn't that accurate => sensor update 10x/second. Try 50 ms intermeasurement time, 50 ms timing budget
+<br><br>
+
+
+<p style = "color: green; font-size: 18px;"> Part (b): Virtual Obstacle Avoidance </p>
+For this part of the lab, I used the provided Jupyter notebook file and simulation software to control the virtual robot in an attempt to avoid obstacles. To start, I decided to go with a fairly simple algorithm and then improve upon it along the way. Looking at the problem, I thought that a fairly simple obstacle avoidance algorithm would just increase the angular speed as the robot gets closer and closer to the wall; by turning at a speed inversely proportional to the distance to the wall, the robot should be able to turn in a different direction before it actually collides with the wall itself. To do this, I set the robot's velocity as follows: 
+```Python
+dist = robot.get_laser_data()
+robot.set_vel(linSpeed,1/dist)
+```
+While this was an interesting idea, I ran into problems almost immediately. First, I noticed that the robot's speed was very erratic and didn't behave as expected. After some investigation, I found out that the refresh rate of the sensors is a lot slower than the velocity commands (which I measured to take 0.25ms using the time.time() function) and extraneous code I was using to control the robot (I discovered this when trying to take several measurements in a row and finding out that they were all the same). To fix this issue, I added a wait command inside of my while(True) loop so the steering algorithm would consistently get new data that reflects the robots change in position a bit better. <br>
+In addition to this sensor refresh issue, the simple steering algorithm was unable to steer away fast enough. 
