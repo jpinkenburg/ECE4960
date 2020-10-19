@@ -394,7 +394,7 @@ def perform_obstacle_avoidance(robot):
 
 
 <Center> <h1> Lab 6: IMU, PID, and Odometry </h1> </Center>
-<Center> <p style = “color: green; font-size: 18px”> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
+<Center> <p style = "color: green; font-size: 18px"> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
 <Center> <b> Setting up the IMU </b> </Center>
 To start experimenting with the IMU, I first had to install all the necessary libraries on the Arduino IDE and connected the module to the Artemis board via a QUIIC connector. After everything was hooked up properly, I scanned the I2C addresses on the Artemis board and found that the IMU was located at address 0x69 - this was expected, as the datasheet claims that the I2C address is either 0x69 (1101001) or 0x68 (1101000) depending on the voltage on the address select pin AD0. To read the accelerometer, magnetometer, and gyroscope data, I ran the provided Example1 code and observed the values output to serial.  <br>
 
@@ -412,7 +412,7 @@ mag_z => mean = 18.43, sd = 0.733 <br>
 <br>
 The errors in the gyroscope measurements may be significant since the mean reading is fairly distant from 0 and the standard deviation is quite high. The magnetometer data is not centered about zero because it measures the direction of the board with respect to the Earth’s magnetic field, not the change in direction like the gyroscope. <br>
 Image of X,Y acceleration readings over time (stationary IMU): <br>
-<img src="Accel_XY.png" alt=”Accel_X_Y”> <br>
+<img src="Accel_XY.png" alt="Accel_X_Y"> <br>
 <br> 
 <Center> <b> Accelerometer </b> </Center> <br>
 To obtain the board’s pitch and roll from the accelerometer values, I used the equations from class to estimate the relevant angles (this uses the direction of gravity wrt the board to calculate the pitch and roll of the IMU). <br>
@@ -525,7 +525,7 @@ for (int i=50; i<256; i++){
 ```
 <br>
 And here’s the results/data plotted in Matplotlib (gyro readings were actually negative since the robot was rotating opposite the direction marked on the IMU, so the values on the graph were made positive, for display purposes): <br>
-<img src = "motorYaw.png" alt= “motor graph”> <br>
+<img src = "motorYaw.png" alt= "motor graph"> <br>
 As seen in the graph, the angular yaw speed generally increases as the motor power increases - as expected. From the data, the maximum angular speed was 891.28 rad/s - on the graph, this roughly corresponds to the maximum power delivered to the motors. There also exists a deadband in rotation that’s different for each motors - the motors only start rotating after a certain power level is exceeded. I noticed that this power level is slightly different for each motor; in my trials, the left motor starts spinning before the right one (may vary with direction of rotation). There also appears to be some sort of hysteresis going on - the motor power deadband is much larger on the left side of the plot than on the right; this makes sense because the motor has to overcome the force of static friction as it ramps up from a stationary position, while it is only fighting kinetic friction as it slows down. As seen in the graph above, it also appears that the error in gyro reading is proportional to the angular speed of the robot. During trials, I also noticed that some slippage was occurring at higher speeds, which may introduce more error into the open-loop measurements.
 <br>
 After playing around with different motor speeds, I tried to find the lowest possible power at which the robot could spin about its own axis without any feedback control. Looking at the graph above, I wanted to try a power of 150 first (this was about the speed at which both motors began to turn). Unfortunately, when I set both motors to this speed, the robot did not rotate since the power was too low (this may be due to the charge on the batteries, since speed at low power seems to drop dramatically as the battery level decreases). After playing around with it a bit more (even trying to push it to give it a bit of a head start), I set the motor power to 200 instead and saw that the robot could then rotate about its own axis. As a comparison, I also recorded the angular speed with a motor power of 250 and graphed them both below: <br>
