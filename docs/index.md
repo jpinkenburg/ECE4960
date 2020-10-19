@@ -391,3 +391,237 @@ def perform_obstacle_avoidance(robot):
 		robot.set_vel(linvel-linvel/(dist*2),1/dist**2)
 		time.sleep(0.1)
 ```
+
+
+<Center> <h1> Lab 6: IMU, PID, and Odometry </h1> </Center>
+<Center> <p style = “color: green; font-size: 18-px”> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
+<Center> </b> Setting up the IMU </b> </Center>
+To start experimenting with the IMU, I first had to install all the necessary libraries on the Arduino IDE and connected the module to the Artemis board via a QUIIC connector. After everything was hooked up properly, I scanned the I2C addresses on the Artemis board and found that the IMU was located at address 0x69 - this was expected, as the datasheet claims that the I2C address is either 0x69 (1101001) or 0x68 (1101000) depending on the voltage on the address select pin AD0. To read the accelerometer, magnetometer, and gyroscope data, I ran the provided Example1 code and observed the values output to serial.  <br>
+
+The first thing I noticed was that the X and Y acceleration readings had a fair amount of error associated with them and were not necessarily centered at zero when the IMU was stationary - see the picture below that shows the X (red) and Y (purple) accelerometer readings over time while stationary. I also saw that the Z acceleration was hovering around 1000, even though the IMU was not moving; this acceleration is due to the force of gravity, and it seems that the accelerometer readings are scaled such that 1 g of acceleration = 1000 units of read acceleration. In light of this, the offset in X and Y acceleration readings may be due to gravity affecting these directions because of a slight tilt of the board (I doubt my desk or even my whole house is perfectly level); however, it could still be due to measurement error to begin with. <br>
+Once I started moving the board around, I noticed that the gyroscope readings were not the absolute angle of the board with respect to its starting position, but were rather measurements of the change in angle; this may cause problems down the line if there are errors in gyro readings that would accumulate over time. I also noticed that the gyro and accelerometer directionalites corresponded to the little arrows that are drawn on the board itself. To get a better sense of the measurement errors of the IMU, I recorded the accelerometer, gyro, and magnetometer readings and calculated the mean and standard deviation of 50 consecutive measurements below. <br>
+accel_x => mean = -8.66, sd = 5.67 <br>
+accel_y => mean = -24.27, sd = 5.94 <br>
+accel_z => mean = 1021.0, sd = 6.79 <br>
+gyr_x => mean = 0.777, sd = 1.386 <br>
+gyr_y => mean = 0.310, sd = 1.594 <br>
+gyr_z => mean = 0.064, sd = 1.330 <br>
+mag_x => mean = -31.19 sd = 0.779 <br>
+mag_y => mean = -16.04, sd = 0.691 <br>
+mag_z => mean = 18.43, sd = 0.733 <br>
+<br>
+The errors in the gyroscope measurements may be significant since the mean reading is fairly distant from 0 and the standard deviation is quite high. The magnetometer data is not centered about zero because it measures the direction of the board with respect to the Earth’s magnetic field, not the change in direction like the gyroscope. <br>
+Image of X,Y acceleration readings over time (stationary IMU): <br>
+<img src=”Accel_XY.png” alt=”Accel_XY”> <br>
+<br> 
+<Center> </b> Accelerometer </b> </Center> <br>
+To obtain the board’s pitch and roll from the accelerometer values, I used the equations from class to estimate the relevant angles (this uses the direction of gravity wrt the board to calculate the pitch and roll of the IMU). <br>
+```C
+float calc_tilt = atan2(myICM.accX(),myICM.accZ())*180.0/M_PI; //Convert to Degrees
+float calc_roll = atan2(myICM.accY(),myICM.accZ())*180.0/M_PI; //Convert to Degrees
+```
+<br> 
+To get a sense of the error on these measurements, I recorded the mean and standard deviation for 50 measurements for both the pitch and roll in {-90,0,90}. To make sure the true angle was actually +/- 90 or 0 degrees, I held the board flush against the front and sides of my desk (which is fairly level). Results are shown below: <br>
+Calculated Roll (truth=90): mean = 89.34, sd = 0.352 <br>
+Calculated Roll (truth=0): mean = -1.64, sd = 0.436 <br>
+Calculated Roll (truth=-90): mean = -88.55, sd = 0.378 <br>
+Calculated Pitch (truth=90): mean = 88.62, sd = 0.381 <br>
+Calculated Pitch (truth=0): mean = -0.471, sd = 0.377 <br>
+Calculated Pitch (truth=-90): mean = -88.13, sd = 0.377 <br>
+<br>
+As seen in the measurements above, the accelerometer is fairly accurate; at the maximum pitch and roll values, the mean measurement is only about 1-1.5 degrees below the true value. The standard deviations are also fairly small (all < 0.4 except Roll when the IMU is flat). We can calculate some sort of calibration factor by mapping the range of measurements to {-90,90}. This map would be calculated by (measured - min_calc)*(90-(-90))/(max_calc-min_calc)-90. For roll, this map would be (measured+88.55)*(180/(89.34+88.55))-90 => scale factor = 1.012. For pitch, this map would be calculated by (measured+88.13)*(180/(88.13+88.62))-90 => scale factor = 1.018.
+<br>
+To try and eliminate the noise in acceleration measurements, I tried to perform a Fourier transform on the accelerometer data to identify the frequency of the noise. Using the provided guide and scipy packages, I wrote the code below to analyze the frequencies in the accelerometer measurements: <br>
+```Python
+sfreq = 1000
+N = 2*sfreq
+frequency = np.linspace(0.0,sfreq/2,int(N/2))
+Freq_data = fft(acc)
+y = 2/N * abs(freq_data[0:np.int(N/2)])
+plt.plot(frequency,y)
+```
+The sampling rate sfreq was set to 1000 because I had a 1ms delay between measurements in my Arduino code, thus making the sampling rate 1000 Hz. The resulting Fourier spectrum is shown below: <br>
+<img src = “fourier.png”> <br>
+
+The peak towards the lower frequencies may be because I was tapping the robot in somewhat of an oscillatory motion. For higher frequencies (noise), it is hard to find a definitive peak, but there seems to be somewhat of a local maximum at f = 160 Hz - we can use this as the cutoff for our low pass filter (oscillations above that frequency may be due to motion). From lecture, we know that we can implement this low pass filter fairly easily in the arduino code using the equation <br>
+theta_LPF[n]  = alpha*theta + (1-alpha)*theta_LPF[n-1] <br>
+theta_LPF[n-1] = theta_LPF[n] <br>
+Where alpha = T/(T+RC) and f_cutoff = 1/(2*pi*RC). As the cutoff frequency increases, higher frequencies become more important - our data is more ‘complete,’ but high frequency noise in the signal readings increases significantly. If we decrease the cutoff frequency, this noise gets reduced, but we might lose some important information about our data <br>
+
+<Center> <b> Gyroscope </b> </Center>
+To see how reliable angle calculations from the gyroscope would be, I used the equations from class to obtain the calculated angle from the gyro readings and plotted it using the serial plotter. To see how the gyro errors accumulate over time, I recorded the gyro measurements over time <i> while the IMU was stationary </i>and plotted them with the serial plotter. Here’s the code I used to do this:
+```C
+float dt = (millis()-lastTime)/1000.0;
+gx += dt*myICM.gyrX();
+gy += dt*myICM.gyrY();
+gz += dt*myICM.gyrZ();
+/*Serial Commands*/
+lastTime = millis();
+```
+<br>
+As seen in the graph below, these angles are not too reliable - while the accumulated errors in pitch were not too bad, the calculated yaw had a negative skew, and the calculated roll clearly has a positive error in measurement, which accumulates over time to produce the upwards-trending red line below. <br>
+<img src= “gyro_drift.png” alt=”gyro drift”> <br>
+<br>
+These results weren’t so great, so I wondered how they would compare to the angles calculated by the accelerometer readings. To see how they performed against each other, I plotted all three gyro readings and the two acceleration-based angles on the same graph (angle units are all radians) while the IMU was stationary: <br>
+<img src= “gyro_accel.png” alt=”gyro accel”> <br>
+NOTE: calculated pitch and roll are flipped - gave them the wrong labels (oops) <br>
+As seen in the graph above, the gyro-calculated angles are much, much more inaccurate than the accelerometer derived values because the errors in measurement accumulate over time. While the gyro readings fluctuate quite a bit, the accel-angles are nearly a constant zero when the IMU is held flat against the table. It’s hard to see in the graph above, since the gyro values have drifted so much, but the gyro angles appear to have less noise than the accelerometer angles (accel angles vary quite a bit in short periods of time, but have little drift in comparison to the gyro angles) The filter on the accelerometer values further improves the results with relation to the gyro readings by reducing noise in the acceleration-based angles. The gyro noise doesn’t seem to be significantly affected by the sampling frequency, but the drift in measurement seems to increase with sampling frequency. <br>
+
+In an attempt to fix this issue, I added a complementary filter to the pitch and roll gyro calculations. The code snippet below shows the calculations as described in lecture
+```C
+float calc_pitch = atan2(myICM.accX(),myICM.accZ());
+float calc_roll = atan2(myICM.accY(),myICM.accZ());
+float alpha = 0.8;
+pitch  = (pitch+myICM.gyrX()*dt)*(1-alpha)+calc_roll*alpha;
+roll = (roll + myICM.gyrY()*dt)*(1-alpha)+calc_pitch*alpha;
+yaw += myICM.gyrZ()*dt;
+```
+Because the gyro sensor is quite inaccurate, the reliability of the pitch and roll measurements decreases significantly as alpha decreases. In the image below (with alpha = 0.5), I tilted the robot to try and get smooth increases/decreases in pitch and roll, but fluctuations in the gyro readings made these readings quite different from the true observed angle. However, I did start tapping the robot and moving it around in later bits of this plot, and the vibrations/accelerations did not affect the calculated pitch and roll as much. <br>
+<img src=”rp_alpha_0_5.png”> <br>
+When I increased alpha, the calculated angles relied more on the accelerometer readings. This significantly improved accuracy of measurement, but made the calculated pitch and roll much more susceptible to vibrations. In the image below, alpha = 0.9 and the pitch/roll do not fluctuate as rapidly / as much, but are affected more heavily by the vibrations/tapping applied at the end of the plot. In this plot, I first smoothly rotated the robot (in pitch and roll), and then tapped it towards the end. <br>
+<img src= “rp_alpha_0_8.png”> <br>
+
+<br> <br>
+<Center> <b> Magnetometer </b> </Center>
+To start experimenting with the magnetometer in the IMU, I first tried to find magnetic North by reading out the X and Y readings of the magnetometer. After rotating it around a bit, I noticed that the readings were at maximum or minimum when the one of the board’s edges pointed in a certain direction (which, using my phone compass, turned out to be North (maximum) or South (minimum)). Looking at the axes drawn on the IMU module, I saw that the X readings were at maximum (~-0.5) when the X axis was pointing North, and the Y readings were at a similar value when the Y axis was pointing North. When each axis was pointing South, the magnetometer readings for that axis were at minimum (~-40 - -45); each axis had a slightly different maximum and minimum reading - this may have to be calibrated later. <br>
+
+Once I had a better intuition as to how the magnetometer values varied, I tried calculating the yaw angle by 1) solely using the X and Y magnetometer readings, and 2) fusing the magnetometer data with the accelerometer and gyroscope readings. Below is the code I used to do this: <br>
+```C
+float xm = myICM.magX()*cos(roll) - myICM.magY()*sin(roll)*sin(pitch) + myICM.magZ()*cos(roll)*sin(pitch);
+float ym = myICM.magY()*cos(roll) + myICM.magZ()*sin(roll);
+float mag_yaw = atan2(xm, ym);
+float mag_yaw_flat = atan2(myICM.magY(),myICM.magX());
+```
+Using solely the magnetometer values only works for yaw calculations where the pitch and roll are both zero. To test these calculations, I first plotted the computed yaw values while rotating the IMU on a flat surface (pitch and roll are both zero): <br>
+<img src= “flat_yaw.png” alt= “flat yaw”> <br>
+Looking at this image, we can see that the two measurements are very, very similar. This makes sense, because if we set pitch=roll=0 in the equations above, mag_yaw should equal mag_yaw_flat. In the plot, we can also see that there are occasional spikes in the data; this can be due to a large random fluctuation in the magnetometer reading that influences the calculated yaw angle. When playing around with it, I also noticed that when the IMU was pointing North, one of the magnetometer readings was hovering just below zero - if there was a small fluctuation in the reading that bumps it above zero, this caused a sign change in the atan2 argument, which ended up switching the angle from ~-pi to ~+pi; these discontinuities in the atan2 function may also prove to be important to consider in the future. I also noticed that the calculated yaw only varied between [-pi,-pi/2] - this may be because the magnetometer readings do not really exceed 0 for any given direction (maybe shifting the values so their range is centered at 0 may help) and may also be related to the symmetry of the readings as the IMU rotates through 360 degrees. Interestingly, when I was finishing up the lab on Sunday night, these values changed dramatically, with the magnetometer X and Y values now ranging from ~800 to ~1000; this might be due to calibration errors (or maybe I was just sitting on top of a massive magnet!) <br>
+After playing around with the readings when the IMU was flat, I tried to calculate the yaw when pitch and roll were involved. For this, I had to fuse the magnetometer data with the calculated roll and pitch angles from the accelerometer and gyroscope (see equations above). This calculated angle was somewhat robust to small, gradual changes in pitch, but still generally tracked the measured pitch if it changed quickly or increased significantly. In the plot below, the green line is the magnetometer-calculated yaw, purple is the pitch, and red is the roll. As seen in the plot, the calculated yaw varies with pitch to some extent, but changes less dramatically than the actual pitch.
+
+<img src=”mag_yaw_pitch.png”>
+
+<Center> <b> PID Control </b> </Center> 
+To start working towards successful PID control of the robot, I first recorded the yaw reading of the gyroscope as the robot rotated about its own axis.  To do this, I recorded the gyroscope’s Z axis reading (measured in rad/s) as I increased the power to each of the motors (as they rotated in the opposite direction). Gyro readings and motor power increases were performed every 30 ms (this was done because a) these timesteps were used in previous parts of the lab and b) stepping up/down the motor power every 30 mins gave a reasonable duration for the experiment). Code below: <br>
+```C
+int startTime = millis();
+for (int i=50; i<256; i++){
+    myICM.getAGMT(); 
+    yaw = myICM.gyrZ();
+    time = startTime - millis();
+    /*Commands to record time and angular speed omitted*/
+    delay(30);
+    motors.setDrive(0,0,i); //Set motors in opposite directions
+    motors.setDrive(1,1,i);
+  }
+  //Spin motors in opposite directions
+  for (int q=255; q>=50;q--){
+       myICM.getAGMT(); 
+       yaw = myICM.gyrZ();
+       time = startTime - millis();
+       /*Commands to record time and angular speed omitted*/
+       delay(30)
+       motors.setDrive(0,0,q);
+       motors.setDrive(1,1,q);
+  }
+```
+<br>
+And here’s the results/data plotted in Matplotlib (gyro readings were actually negative since the robot was rotating opposite the direction marked on the IMU, so the values on the graph were made positive, for display purposes): <br>
+<img src = “motorYaw.png” alt= “motor graph”> <br>
+As seen in the graph, the angular yaw speed generally increases as the motor power increases - as expected. From the data, the maximum angular speed was 891.28 rad/s - on the graph, this roughly corresponds to the maximum power delivered to the motors. There also exists a deadband in rotation that’s different for each motors - the motors only start rotating after a certain power level is exceeded. I noticed that this power level is slightly different for each motor; in my trials, the left motor starts spinning before the right one (may vary with direction of rotation). There also appears to be some sort of hysteresis going on - the motor power deadband is much larger on the left side of the plot than on the right; this makes sense because the motor has to overcome the force of static friction as it ramps up from a stationary position, while it is only fighting kinetic friction as it slows down. As seen in the graph above, it also appears that the error in gyro reading is proportional to the angular speed of the robot. During trials, I also noticed that some slippage was occurring at higher speeds, which may introduce more error into the open-loop measurements.
+<br>
+After playing around with different motor speeds, I tried to find the lowest possible power at which the robot could spin about its own axis without any feedback control. Looking at the graph above, I wanted to try a power of 150 first (this was about the speed at which both motors began to turn). Unfortunately, when I set both motors to this speed, the robot did not rotate since the power was too low (this may be due to the charge on the batteries, since speed at low power seems to drop dramatically as the battery level decreases). After playing around with it a bit more (even trying to push it to give it a bit of a head start), I set the motor power to 200 instead and saw that the robot could then rotate about its own axis. As a comparison, I also recorded the angular speed with a motor power of 250 and graphed them both below: <br>
+<img src= “slowPowerSpeed.png” alt= “speed at low power”> <br>
+When experimenting with this, I also tried with a motor power of 180, but that was too slow given the battery capacity at the time of experiment (this was quite a problem during the labs, since the battery life of the robot is atrociously short). In the graph, the angular speed for a power of 200 seems to go up and then down; when observing the robot, I noticed that the speed slowed down by a fair amount after a few seconds - this might have been due to the presumably low battery level at the time of experiment, even though I only ran the robot for a few minutes since the last charge. The variation in angular speed seen in this graph may also be due to the fact that open-loop control is extremely imprecise. While the angular speeds at lower power seem to have more variation, the rotational speed measurements for the higher motor power seem to be marginally more consistent than for the lower one given the deviations in gyro readings. <br>
+Looking at the graph, we can see that the minimum open loop rotational speed is about 200 rad/s - according to the lab instructions, the units of the gyro readings are supposed to be in rad/s, but 200 rad/s seems like far too large of a number; it is most likely in <b> degrees/s </b>. For future experiments, it would also be interesting to try initially ramping up the power to a high level, then decreasing it to go slower, since static friction would then be overcome! (This is probably what PID control is going to do in the end!)
+<br> <br>
+ 
+<b> TOF Analysis </b> <br>
+According to the TOF sensor datasheet, the sensor can perform ranging measurements at a maximum frequency of 50 Hz (new measurement every 0.02 seconds). With a minimum rotational speed of 200 degrees/s, this is most likely too slow to accurately map out a room. <br>
+For a robot that is 0.5m from a wall and a sensor refresh rate of 50 Hz, the robot will take a new measurement 0.02 seconds later. At 200 degrees/s, this is 4 degrees of motion (at 200 rad/s, this is 4 rad of motion, which would be insane). The distance covered would be 0.5*tan(4 deg), or 3.5 cm of missed space  - this is most likely too much for any decent map. If the robot were to start off at 45 degrees, this would increase to 0.5(tan(49 deg)-tan(45 deg)) = 7.5 cm, which is most certainly too much missed distance to generate any sort of decent map. <br>
+Because the TOF sensor uses the “signal” and “sigma” parameters to filter the output if the measurements are too different, this rotational speed of 200 degrees/s may cause the TOF sensor to ignore the output, especially if the robot is already at a high angle from the wall (distances would be even more different between measurements). In addition, since the open loop speed is not consistent, getting a reliable rotational scan to map out a room would be even more difficult, if not downright impossible.
+<br>
+<br>
+<b> PID CONTROL </b> <br>
+Finally, we get to the good stuff. To start implementing PID control, I first used some online resources (this one was helpful: https://www.teachmemicro.com/arduino-pid-control-tutorial/) to set up a tunable PID algorithm in the Arduino IDE. After some trial and error, I came up with the algorithm below: 
+```C
+double getPID(double curYaw) {
+  curTime = millis();
+  dt = (double)(curTime - prevTime);
+  error = setPoint - curYaw;
+  intError += error * dt;
+  dError = (error - prevError) / dt;
+  prevError = error;
+  prevTime = curTime;
+  double intTerm = ki * intError;
+  return kp * error + intTerm + kd * dError;
+}
+```
+Motor control code: <br>
+```C
+myICM.getAGMT();
+double pidVal = getPID(myICM.gyrZ());
+motors.setDrive(0, 0, min(pidVal+50,255)); //add 50 to put motors into operating range
+motors.setDrive(1,1, min(pidVal+50,255));
+```
+This algorithm allows me to easily set the PID parameters (kp,ki,kd) at the top of the program and experiment with different values for each. At first, the value of this getPID function was just set as the motor power, but I eventually added a base speed to this value so negative values returned by the getPID function were still taken into consideration. To start tuning the parameters to make the robot spin at the correct speed, I used a heuristic method we discussed in class; this method first increases kP until oscillation, then decreases it and increases kI until stability loss, then varies kD to increase versatility with respect to disturbances. After seeing if the code returned reasonable values from the PID function without the motors moving, I set all parameters to zero and started increasing kP. To start, I made the set point a modest 100 (roughly half of the open loop rotational speed) and set kP = 1, with kI = kD = 0. The video and graph below show the robot’s motion with these parameters. <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zqpe6kpQpRI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+<img src = “PID_KP1_SP100.png”> <br>
+In the video, the robot appears to move fairly smoothly (minus the little bump over the scissors that I forgot to move out the way) - however, soon after it starts up, one wheel stops turning and the second one controls the motion; this may be due to the deadband observed earlier and friction from the table. Increasing the setpoint to 150 did not change this, so I decided to proceed and see if anything changed. Additionally, the graph shows that the gyro reading hovered around 60 as the robot rotated around - this may have been because the motors were not receiving enough power to run fast enough, so I increased the base power delivered to the motors; I also thought increasing kP may resolve this issue, so that’s exactly what I did next. In the next step, I increased kP to 5: <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Qw_HR6EgBnA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+<img src= “PID_KP5_SP100.png”> <br>
+With these parameters, we can clearly see the robot motors oscillate as the PID controller continuously overcorrects the robot’s motion. In the graph, we can also see that the PID values are very large, but the gyro measurements are now at least somewhat centered around the set point of 100 (as it should be). As prescribed by the heuristic described above, I then reduced the value of kP by a factor of 2 (kP = 2.5 now) and then increased kI to 1 (value selected somewhat arbitrarily). <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/BXQPqzb6HpY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br> 
+<img src = “PID_KP2_5_KI_1_SP_100.png”><br>
+This worked fairly well, but the controller still undershoots the set point a little bit, so I increased kI to 4 instead. <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/HZUjX5tpRW0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+<img src = “PID_KP_2_5_KI_4_SP_100.png”><br>
+This worked very well - still undershoots the target point sometimes, but generally works very well! To see if I could improve the performance of the controller by adjusting the integral parameter, I increased kI to 10:
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6e8F2VgtziA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+<img src = “PID_KP_2_5_KI_10_SP_100.png”><br>
+In this video, the integral error builds up and the robot occasionally stops - this may also be due to the clamp I put on the integral error in the code. This effect was also reproducible with larger values of kI, so I reduced it back down to 4 and tried increasing kD to 1: <br>
+<img src=”PID_KP_2_5_KI_4_KD_1_SP_100.png”> <br>
+In this graph, we can see that the addition of the derivative term does not really improve the performance of the PID controller (if anything, it seems to even degrade it a bit!). This may be because the sensor readings are fairly imprecise and have quite high variations (so the derivative term will be quite high and somewhat irrelevant). So, for my final PID controller, I stuck with kP = 2.5, kI = 4, kD = 0 for a set point of 100 (this was essentially the slowest speed I could get my robot to turn). While a speed of 100 is a pretty nice improvement over my open loop speed of 200, this is still not enough to produce a rotational scan that is reliable enough to map out a room (just halve the errors found in the TOF section above). <br>
+<br>
+To really get a good rotational scan, we would have to move the motors much more slowly; one way to achieve this is by applying PID control to a single motor instead of both of them. This allows us to make the motor slower since we are only moving one instead of two in opposite directions (and hence less speed); we also have to deal with less friction and can work with the motor that has a lower deadband. If we move one motor only, it might also have more torque moving about the axis (not a mechE so I’m not 100% sure). By applying the same PID algorithm with parameters described above, I was able to achieve a rotational speed of 20 degrees/sec! <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ODOI3VM74P8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+<img src=”slow_yaw.png”><br>
+
+With a speed of 20 degrees/s (1/10 of the open-loop speed!) and a TOF sampling rate of 50 Hz, this would generate a measurement every 0.4 degrees! While it is a little noisy (this is almost certainly because of noise in the gyro sensor), the angular speed measurements are certainly centered around 20 degrees/s!  For a 4x4 meter box with the robot 1 m away, this gives an angle of 63 deg at the end of the box; at this angle, the robot would perform the next measurement at 63.4 deg (corresponding to a linear missed distance of ~3cm). As an upper bound on the measurement, this is not a terribly inaccurate map. Multiple rotational scans could also be performed to further boost the accuracy of the map in the end.<br>
+
+Unfortunately, I did not have enough time to try and generate a plot of TOF readings as the robot rotated, since so many things went haywire during this lab - having the qwiic connector on the Artemis board break was a decently large setback, so I had to be very careful with the precarious connections that I soldered back together. This lab also took a very, very long time (20+ hours minimum) to complete even without these setbacks.<br> <br>
+
+<Center><p style = “color:green;font-size:18-px;”> Lab 6b: Odometry with the Virtual Robot </p></Center>
+After playing around with the provided get_pose() and get_gt_pose() member functions, learning how to use the plotter and displaying the robot’s odometry and ground truth location was fairly easy. Below is the simple code I wrote to send the odometry and ground truth to the plotter: <br>
+```Python
+def update_plot(robot):
+	while True:
+		odom = robot.get_pose()
+		gt = robot.get_gt_pose()
+		robot.send_to_plot(odom[0],odom[1],ODOM)
+		robot.send_to_plot(gt[0],gt[1],GT)
+		time.sleep(0.2) #can be changed
+```
+To start, I was curious to see how much the odometer varied over time, so I plotted the robot’s measured position and its ground truth location for several periods of time <i> while the robot was stationary </i>. As seen in the graphs below, the robot’s odometry fluctuates by a significant amount in relation to the ground truth and the map - this may cause issues in future labs if the robot is tasked with autonomously navigating a given map without any corrections to the odometry data or further sensor inputs. <br>
+Here’s the odometry data plotted for 1 minute (at 5 samples per second). Odometry is plotted in red, ground truth is the single point in green: <br>
+<img src = “virt_1min_stationary.png” alt=“1_min virt”> 
+<br>
+Here’s the same plot 4 minutes later. As you can see, the robot’s measured position has changed by an incredible amount over this fairly long period of time: <br>
+<img src= “virt_5min_stationary.png” alt= “5_min virt”>
+<br>
+After playing around with the virtual robot and observing its odometry while it was stationary, I wanted to see how much the measured position deviated from the ground truth while the robot was moving. Immediately after trying it out, I noticed that the odometry was a 90 degree rotation away from where it should have been (after trying this again, this was most likely a result of a bad initialization on my end): <br>
+<img src = “virt_take_1.png” alt=“virt fail”> 
+<br>
+After fixing it by switching the odometry coordinates to (-y,x), I then saw that the odometry matched the ground truth trajectory fairly well. Although the trajectories were quite similar, there were some notable differences between the two - the measured trajectory lines were more skew/curved, points weren’t spaced as evenly, and the points are quite spread out when the robot is stationary / turning about its own axis when compared to the ground truth. Here’s the trajectory (odom and gt are very similar, but trajectories are translated for some reason): <br>
+<img src = “virt_take_2.png” alt=“virt success”> 
+<br>
+After restarting the VM and trying again, I found out that the 90 degree rotation and translation of the trajectory was because I had initialized the robot after playing around with the telop a bit. Once I initialized the position correctly, I could remove the (-y,x) correction that I had applied earlier and played around with the trajectory some more - I was curious how the measured location and the ground truth trajectory would differ if the robot was turning in a circle. Here’s what I saw (drove around a bit first and then turned in a circle): <br> 
+<img src = “virt_circle.png” alt=“virt fail”> 
+<br>
+As seen in the plot above, the measured trajectory in the circular loop is much more spread out than the ground truth values; it does not measure as tight or as circular of a loop as the GT. In addition, when the robot exits the loop, the odometry is way off from the ground truth - the robot thinks that it’s going in a completely different direction than it actually is! This may be because it was driving in circles for a fairly long period of time and the odometer may have drifted, or the odometry was influenced by the motion of the robot itself. This phenomenon is certainly something that must be taken into account in future labs. <br>
+I was also curious to see how the odometry varied with speed. To do this, I drove the same trajectory at a low speed (0.28) and a high speed (7.5) and saw how it compared. <br>
+<i> High Speed: </i> <br>
+<img src = “high_corner.png” alt=“virt fail”>  <br>
+<i> Low Speed: </i> <br>
+<img src = “low_corner.png” alt=“virt fail”>  <br>
+
+Unfortunately, the low speed one was a bit skew with relation to the ground truth to start, but the differences between the high and low speeds are still clear. In the high-speed trajectory, the points are spaced much further apart and the angle at turning is much, much more off from the ground truth than for the low speed (low speed odometry looks like it turned 90 degrees, while the high speed appears to have turned >135). In addition to the turns, the straight lines in the trajectory are a bit more curvy/skew for the high-speed run - this suggests that odometry gets worse as speed increases, which is definitely in accordance with what I’ve seen in the real world. <br>
+It would be interesting to see how odometry may be improved by averaging over measurements and/or taking measurements much more quickly.
