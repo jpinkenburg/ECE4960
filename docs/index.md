@@ -395,6 +395,7 @@ def perform_obstacle_avoidance(robot):
 
 <Center> <h1> Lab 6: IMU, PID, and Odometry </h1> </Center>
 <Center><p style = "color: green; font-size: 18px;"> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
+NOTE: For some reason, certain images do not appear on the website version of this lab report - check out the index.md file for the images if they are missing; they should all be in the Github repo. <br>
 <Center> <b> Setting up the IMU </b> </Center>
 To start experimenting with the IMU, I first had to install all the necessary libraries on the Arduino IDE and connected the module to the Artemis board via a QUIIC connector. After everything was hooked up properly, I scanned the I2C addresses on the Artemis board and found that the IMU was located at address 0x69 - this was expected, as the datasheet claims that the I2C address is either 0x69 (1101001) or 0x68 (1101000) depending on the voltage on the address select pin AD0. To read the accelerometer, magnetometer, and gyroscope data, I ran the provided Example1 code and observed the values output to serial.  <br>
 
@@ -463,7 +464,7 @@ As seen in the graph below, these angles are not too reliable - while the accumu
 <img src= "gyro_drift.png" alt="gyro drift"> <br>
 <br>
 These results weren’t so great, so I wondered how they would compare to the angles calculated by the accelerometer readings. To see how they performed against each other, I plotted all three gyro readings and the two acceleration-based angles on the same graph (angle units are all radians) while the IMU was stationary: <br>
-<img src= "gyro_accel.png" alt="gyro accel"> <br>
+<img src= "gyro_accel.png" alt="gyro_accel"> <br>
 NOTE: calculated pitch and roll are flipped - gave them the wrong labels (oops) <br>
 As seen in the graph above, the gyro-calculated angles are much, much more inaccurate than the accelerometer derived values because the errors in measurement accumulate over time. While the gyro readings fluctuate quite a bit, the accel-angles are nearly a constant zero when the IMU is held flat against the table. It’s hard to see in the graph above, since the gyro values have drifted so much, but the gyro angles appear to have less noise than the accelerometer angles (accel angles vary quite a bit in short periods of time, but have little drift in comparison to the gyro angles) The filter on the accelerometer values further improves the results with relation to the gyro readings by reducing noise in the acceleration-based angles. The gyro noise doesn’t seem to be significantly affected by the sampling frequency, but the drift in measurement seems to increase with sampling frequency. <br>
 
