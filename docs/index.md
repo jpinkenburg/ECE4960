@@ -412,7 +412,7 @@ mag_z => mean = 18.43, sd = 0.733 <br>
 <br>
 The errors in the gyroscope measurements may be significant since the mean reading is fairly distant from 0 and the standard deviation is quite high. The magnetometer data is not centered about zero because it measures the direction of the board with respect to the Earth’s magnetic field, not the change in direction like the gyroscope. <br>
 Image of X,Y acceleration readings over time (stationary IMU): <br>
-<img src=”Accel_XY.png” alt=”Accel_XY”> <br>
+<img src=”Accel_XY.png” alt=”Accel_X_Y”> <br>
 <br> 
 <Center> <b> Accelerometer </b> </Center> <br>
 To obtain the board’s pitch and roll from the accelerometer values, I used the equations from class to estimate the relevant angles (this uses the direction of gravity wrt the board to calculate the pitch and roll of the IMU). <br>
