@@ -394,7 +394,7 @@ def perform_obstacle_avoidance(robot):
 
 
 <Center> <h1> Lab 6: IMU, PID, and Odometry </h1> </Center>
-<Center> <p style = "color: green; font-size: 18px"> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
+<Center><p style = "color: green; font-size: 18px;"> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
 <Center> <b> Setting up the IMU </b> </Center>
 To start experimenting with the IMU, I first had to install all the necessary libraries on the Arduino IDE and connected the module to the Artemis board via a QUIIC connector. After everything was hooked up properly, I scanned the I2C addresses on the Artemis board and found that the IMU was located at address 0x69 - this was expected, as the datasheet claims that the I2C address is either 0x69 (1101001) or 0x68 (1101000) depending on the voltage on the address select pin AD0. To read the accelerometer, magnetometer, and gyroscope data, I ran the provided Example1 code and observed the values output to serial.  <br>
 
@@ -429,7 +429,7 @@ Calculated Pitch (truth=90): mean = 88.62, sd = 0.381 <br>
 Calculated Pitch (truth=0): mean = -0.471, sd = 0.377 <br>
 Calculated Pitch (truth=-90): mean = -88.13, sd = 0.377 <br>
 <br>
-As seen in the measurements above, the accelerometer is fairly accurate; at the maximum pitch and roll values, the mean measurement is only about 1-1.5 degrees below the true value. The standard deviations are also fairly small (all < 0.4 except Roll when the IMU is flat). We can calculate some sort of calibration factor by mapping the range of measurements to {-90,90}. This map would be calculated by (measured - min_calc)*(90-(-90))/(max_calc-min_calc)-90. For roll, this map would be (measured+88.55)*(180/(89.34+88.55))-90 => scale factor = 1.012. For pitch, this map would be calculated by (measured+88.13)*(180/(88.13+88.62))-90 => scale factor = 1.018.
+As seen in the measurements above, the accelerometer is fairly accurate; at the maximum pitch and roll values, the mean measurement is only about 1-1.5 degrees below the true value. The standard deviations are also fairly small (all < 0.4 except Roll when the IMU is flat). We can calculate some sort of calibration factor by mapping the range of measurements to {-90,90}. This map would be calculated by (measured - min_calc) * (90-(-90))/(max_calc-min_calc)-90. For roll, this map would be (measured+88.55) * (180/(89.34+88.55))-90 => scale factor = 1.012. For pitch, this map would be calculated by (measured+88.13)*(180/(88.13+88.62))-90 => scale factor = 1.018.
 <br>
 To try and eliminate the noise in acceleration measurements, I tried to perform a Fourier transform on the accelerometer data to identify the frequency of the noise. Using the provided guide and scipy packages, I wrote the code below to analyze the frequencies in the accelerometer measurements: <br>
 ```Python
@@ -444,9 +444,9 @@ The sampling rate sfreq was set to 1000 because I had a 1ms delay between measur
 <img src="fourier.png"> <br>
 
 The peak towards the lower frequencies may be because I was tapping the robot in somewhat of an oscillatory motion. For higher frequencies (noise), it is hard to find a definitive peak, but there seems to be somewhat of a local maximum at f = 160 Hz - we can use this as the cutoff for our low pass filter (oscillations above that frequency may be due to motion). From lecture, we know that we can implement this low pass filter fairly easily in the arduino code using the equation <br>
-theta_LPF[n]  = alpha*theta + (1-alpha)*theta_LPF[n-1] <br>
+theta_LPF[n]  = alpha* theta + (1-alpha)* theta_LPF[n-1] <br>
 theta_LPF[n-1] = theta_LPF[n] <br>
-Where alpha = T/(T+RC) and f_cutoff = 1/(2*pi*RC). As the cutoff frequency increases, higher frequencies become more important - our data is more ‘complete,’ but high frequency noise in the signal readings increases significantly. If we decrease the cutoff frequency, this noise gets reduced, but we might lose some important information about our data <br>
+Where alpha = T/(T+RC) and f_cutoff = 1/(2* pi* RC). As the cutoff frequency increases, higher frequencies become more important - our data is more ‘complete,’ but high frequency noise in the signal readings increases significantly. If we decrease the cutoff frequency, this noise gets reduced, but we might lose some important information about our data <br>
 
 <Center> <b> Gyroscope </b> </Center>
 To see how reliable angle calculations from the gyroscope would be, I used the equations from class to obtain the calculated angle from the gyro readings and plotted it using the serial plotter. To see how the gyro errors accumulate over time, I recorded the gyro measurements over time <i> while the IMU was stationary </i>and plotted them with the serial plotter. Here’s the code I used to do this:
@@ -463,7 +463,7 @@ As seen in the graph below, these angles are not too reliable - while the accumu
 <img src= "gyro_drift.png" alt="gyro drift"> <br>
 <br>
 These results weren’t so great, so I wondered how they would compare to the angles calculated by the accelerometer readings. To see how they performed against each other, I plotted all three gyro readings and the two acceleration-based angles on the same graph (angle units are all radians) while the IMU was stationary: <br>
-<img src= "gyro_accel.png" alt=”gyro accel”> <br>
+<img src= "gyro_accel.png" alt="gyro accel"> <br>
 NOTE: calculated pitch and roll are flipped - gave them the wrong labels (oops) <br>
 As seen in the graph above, the gyro-calculated angles are much, much more inaccurate than the accelerometer derived values because the errors in measurement accumulate over time. While the gyro readings fluctuate quite a bit, the accel-angles are nearly a constant zero when the IMU is held flat against the table. It’s hard to see in the graph above, since the gyro values have drifted so much, but the gyro angles appear to have less noise than the accelerometer angles (accel angles vary quite a bit in short periods of time, but have little drift in comparison to the gyro angles) The filter on the accelerometer values further improves the results with relation to the gyro readings by reducing noise in the acceleration-based angles. The gyro noise doesn’t seem to be significantly affected by the sampling frequency, but the drift in measurement seems to increase with sampling frequency. <br>
 
