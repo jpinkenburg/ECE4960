@@ -412,7 +412,7 @@ mag_z => mean = 18.43, sd = 0.733 <br>
 <br>
 The errors in the gyroscope measurements may be significant since the mean reading is fairly distant from 0 and the standard deviation is quite high. The magnetometer data is not centered about zero because it measures the direction of the board with respect to the Earth’s magnetic field, not the change in direction like the gyroscope. <br>
 Image of X,Y acceleration readings over time (stationary IMU): <br>
-<img src=”Accel_XY.png” alt=”Accel_X_Y”> <br>
+<img src="Accel_XY.png" alt=”Accel_X_Y”> <br>
 <br> 
 <Center> <b> Accelerometer </b> </Center> <br>
 To obtain the board’s pitch and roll from the accelerometer values, I used the equations from class to estimate the relevant angles (this uses the direction of gravity wrt the board to calculate the pitch and roll of the IMU). <br>
@@ -441,7 +441,7 @@ y = 2/N * abs(freq_data[0:np.int(N/2)])
 plt.plot(frequency,y)
 ```
 The sampling rate sfreq was set to 1000 because I had a 1ms delay between measurements in my Arduino code, thus making the sampling rate 1000 Hz. The resulting Fourier spectrum is shown below: <br>
-<img src=“fourier.png”> <br>
+<img src="fourier.png"> <br>
 
 The peak towards the lower frequencies may be because I was tapping the robot in somewhat of an oscillatory motion. For higher frequencies (noise), it is hard to find a definitive peak, but there seems to be somewhat of a local maximum at f = 160 Hz - we can use this as the cutoff for our low pass filter (oscillations above that frequency may be due to motion). From lecture, we know that we can implement this low pass filter fairly easily in the arduino code using the equation <br>
 theta_LPF[n]  = alpha*theta + (1-alpha)*theta_LPF[n-1] <br>
