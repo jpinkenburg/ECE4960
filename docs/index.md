@@ -394,8 +394,8 @@ def perform_obstacle_avoidance(robot):
 
 
 <Center> <h1> Lab 6: IMU, PID, and Odometry </h1> </Center>
-<Center> <p style = “color: green; font-size: 18-px”> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
-<Center> </b> Setting up the IMU </b> </Center>
+<Center> <p style = “color: green; font-size: 18px”> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
+<Center> <b> Setting up the IMU </b> </Center>
 To start experimenting with the IMU, I first had to install all the necessary libraries on the Arduino IDE and connected the module to the Artemis board via a QUIIC connector. After everything was hooked up properly, I scanned the I2C addresses on the Artemis board and found that the IMU was located at address 0x69 - this was expected, as the datasheet claims that the I2C address is either 0x69 (1101001) or 0x68 (1101000) depending on the voltage on the address select pin AD0. To read the accelerometer, magnetometer, and gyroscope data, I ran the provided Example1 code and observed the values output to serial.  <br>
 
 The first thing I noticed was that the X and Y acceleration readings had a fair amount of error associated with them and were not necessarily centered at zero when the IMU was stationary - see the picture below that shows the X (red) and Y (purple) accelerometer readings over time while stationary. I also saw that the Z acceleration was hovering around 1000, even though the IMU was not moving; this acceleration is due to the force of gravity, and it seems that the accelerometer readings are scaled such that 1 g of acceleration = 1000 units of read acceleration. In light of this, the offset in X and Y acceleration readings may be due to gravity affecting these directions because of a slight tilt of the board (I doubt my desk or even my whole house is perfectly level); however, it could still be due to measurement error to begin with. <br>
@@ -414,7 +414,7 @@ The errors in the gyroscope measurements may be significant since the mean readi
 Image of X,Y acceleration readings over time (stationary IMU): <br>
 <img src=”Accel_XY.png” alt=”Accel_XY”> <br>
 <br> 
-<Center> </b> Accelerometer </b> </Center> <br>
+<Center> <b> Accelerometer </b> </Center> <br>
 To obtain the board’s pitch and roll from the accelerometer values, I used the equations from class to estimate the relevant angles (this uses the direction of gravity wrt the board to calculate the pitch and roll of the IMU). <br>
 ```C
 float calc_tilt = atan2(myICM.accX(),myICM.accZ())*180.0/M_PI; //Convert to Degrees
@@ -441,7 +441,7 @@ y = 2/N * abs(freq_data[0:np.int(N/2)])
 plt.plot(frequency,y)
 ```
 The sampling rate sfreq was set to 1000 because I had a 1ms delay between measurements in my Arduino code, thus making the sampling rate 1000 Hz. The resulting Fourier spectrum is shown below: <br>
-<img src = “fourier.png”> <br>
+<img src=“fourier.png”> <br>
 
 The peak towards the lower frequencies may be because I was tapping the robot in somewhat of an oscillatory motion. For higher frequencies (noise), it is hard to find a definitive peak, but there seems to be somewhat of a local maximum at f = 160 Hz - we can use this as the cutoff for our low pass filter (oscillations above that frequency may be due to motion). From lecture, we know that we can implement this low pass filter fairly easily in the arduino code using the equation <br>
 theta_LPF[n]  = alpha*theta + (1-alpha)*theta_LPF[n-1] <br>
@@ -589,7 +589,7 @@ With a speed of 20 degrees/s (1/10 of the open-loop speed!) and a TOF sampling r
 
 Unfortunately, I did not have enough time to try and generate a plot of TOF readings as the robot rotated, since so many things went haywire during this lab - having the qwiic connector on the Artemis board break was a decently large setback, so I had to be very careful with the precarious connections that I soldered back together. This lab also took a very, very long time (20+ hours minimum) to complete even without these setbacks.<br> <br>
 
-<Center><p style = “color:green;font-size:18-px;”> Lab 6b: Odometry with the Virtual Robot </p></Center>
+<Center><p style = “color:green;font-size:18px;”> Lab 6b: Odometry with the Virtual Robot </p></Center>
 After playing around with the provided get_pose() and get_gt_pose() member functions, learning how to use the plotter and displaying the robot’s odometry and ground truth location was fairly easy. Below is the simple code I wrote to send the odometry and ground truth to the plotter: <br>
 ```Python
 def update_plot(robot):
