@@ -460,7 +460,7 @@ lastTime = millis();
 ```
 <br>
 As seen in the graph below, these angles are not too reliable - while the accumulated errors in pitch were not too bad, the calculated yaw had a negative skew, and the calculated roll clearly has a positive error in measurement, which accumulates over time to produce the upwards-trending red line below. <br>
-<img src= "gyro_drift.png" alt=”gyro drift”> <br>
+<img src= "gyro_drift.png" alt="gyro drift"> <br>
 <br>
 These results weren’t so great, so I wondered how they would compare to the angles calculated by the accelerometer readings. To see how they performed against each other, I plotted all three gyro readings and the two acceleration-based angles on the same graph (angle units are all radians) while the IMU was stationary: <br>
 <img src= "gyro_accel.png" alt=”gyro accel”> <br>
@@ -493,7 +493,7 @@ float mag_yaw = atan2(xm, ym);
 float mag_yaw_flat = atan2(myICM.magY(),myICM.magX());
 ```
 Using solely the magnetometer values only works for yaw calculations where the pitch and roll are both zero. To test these calculations, I first plotted the computed yaw values while rotating the IMU on a flat surface (pitch and roll are both zero): <br>
-<img src= "flat_yaw.png" alt= “flat yaw”> <br>
+<img src= "flat_yaw.png" alt= "flat yaw"> <br>
 Looking at this image, we can see that the two measurements are very, very similar. This makes sense, because if we set pitch=roll=0 in the equations above, mag_yaw should equal mag_yaw_flat. In the plot, we can also see that there are occasional spikes in the data; this can be due to a large random fluctuation in the magnetometer reading that influences the calculated yaw angle. When playing around with it, I also noticed that when the IMU was pointing North, one of the magnetometer readings was hovering just below zero - if there was a small fluctuation in the reading that bumps it above zero, this caused a sign change in the atan2 argument, which ended up switching the angle from ~-pi to ~+pi; these discontinuities in the atan2 function may also prove to be important to consider in the future. I also noticed that the calculated yaw only varied between [-pi,-pi/2] - this may be because the magnetometer readings do not really exceed 0 for any given direction (maybe shifting the values so their range is centered at 0 may help) and may also be related to the symmetry of the readings as the IMU rotates through 360 degrees. Interestingly, when I was finishing up the lab on Sunday night, these values changed dramatically, with the magnetometer X and Y values now ranging from ~800 to ~1000; this might be due to calibration errors (or maybe I was just sitting on top of a massive magnet!) <br>
 After playing around with the readings when the IMU was flat, I tried to calculate the yaw when pitch and roll were involved. For this, I had to fuse the magnetometer data with the calculated roll and pitch angles from the accelerometer and gyroscope (see equations above). This calculated angle was somewhat robust to small, gradual changes in pitch, but still generally tracked the measured pitch if it changed quickly or increased significantly. In the plot below, the green line is the magnetometer-calculated yaw, purple is the pitch, and red is the roll. As seen in the plot, the calculated yaw varies with pitch to some extent, but changes less dramatically than the actual pitch.
 
