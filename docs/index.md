@@ -696,8 +696,13 @@ def getWorldPoints(yaw,tof,xr,yr):
         realY[i] = point[1]
     return realX,realY
 ```
-After doing all this, I got the following image:<br>
+After doing all this, I got the following image (TOF measurements are scatter points superimposed on the ground truth map from above, stars are the locations at which the robot performed a scan):<br>
 <img src="bad_map.png"><br>
 This wasn't so great, so I tried downsampling the points and re-measuring the distances a bit to obtain the following map:<br>
 <img src="mapped_room.png"><br>
+
+Looking at the maps above, we can see that the TOF sensor on the robot can detect the walls with fairly high accuracy (accounting for measurement error, of course); large flat surfaces were ideal for accurate TOF readings. However, the robot's mapping performance degraded significantly when measuring the location of obstacles scattered about the room, particularly the lysol wipes bottle due to its small round shape. In the map above, there are two phenomena that are especially notable; the robot did a surprisingly poor performance in mapping out the space under my dresser (denoted by the blue dashed line in the map) and underperformed on the top right wall in the map. Although the robot was easily able to fit under my dresser and there was a fair bit of clearance between the top of the robot and the dresser edge, the scans performed in this region yielded very inaccurate results. This may be due to the fact that the TOF sensor was mounted on the top of the robot and the ceiling of the dresser "tunnel" could have interfered with the sensor readings; I observed that the floor interfered with distance measurements when the TOF sensor was mounted too low on the robot. These effects may also have something to do with the lower light levels under the dresser, but this didn't seem to have much of an effect on TOF readings in lab 5. In addition, the readings were especially inaccurate in the top right corner of the map as well. In this location, I used a whiteboard to block the space under my bed and serve as a wall; its high reflectivity/shininess and white color may have influenced the TOF measurements to become more inaccurate - I will try and replace this surface in future attempts and see if it improves. Furthermore, some of the objects in the map were not detected as well if they were measured at a strange angle (i.e. not head-on) - to resolve this, we could try and mount more TOF sensors on the robot or try and place the robot in positions where the path to the object is more direct; it would be interesting to see how much map accuracy improves with more measurements in future labs as well. <br>
+<br>
+After playing around with the real robot, I then coded the same map in the VM simulator for use in future labs.
+<img src="vm_map.png">
 
