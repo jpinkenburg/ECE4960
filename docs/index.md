@@ -652,7 +652,7 @@ To start mapping out my room, I first made sure my PI(D) controller was still wo
 Once I verified that my PID controller was still operational, I put my robot in the corner of my room (where the soccer ball is in the picture above) and performed a single rotation while recording the distances measured by the TOF sensor: <br>
 <img src="1_rotation.png"><br>
 Code:<br>
-```C
+```
 if (distanceSensor.checkForDataReady()){
     distance = distanceSensor.getDistance();
     distanceSensor.stopRanging();
