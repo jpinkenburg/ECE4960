@@ -844,7 +844,7 @@ def update_step():
     bel = loc.bel
     bel_bar = loc.bel_bar
     obs_range_data = loc.obs_range_data
-    prod = np.prod
+    prod = np.prod 
     for x in xrange:
         for y in yrange:
             for t in trange:
@@ -852,3 +852,5 @@ def update_step():
     summ = npsum(loc.bel)
     loc.bel /= summ
 ```
+
+In this lab, a lot of improvements had to be made in the code so that it would run efficiently. Without any modifications, my code initally would have taken approx. 2 hours to run a single iteration of the Bayes Filter! To make the code run faster, I removed as many dot-accessed functions (e.g. loc.mapper, np.sum, etc.) from inside of the large loops as possible; by not having to access an object or library in every iteration of the loop, this drastically improved code performance. In addition, I tried to eliminate any extraneous variables used inside of the loop bodies and used numpy processes (particularly in the update step) to speed up code execution. <br>
