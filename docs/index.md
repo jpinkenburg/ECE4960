@@ -735,7 +735,7 @@ get_views = mapper.get_views
 ```
 <br>
 Once all of the necessary variables were declared, I then worked to touch up my implementation of the compute_control function from lab 7 that obtains the control information from the current and past states based on the odometry motion model. To do this, I just had to use the provided normalize_angle function to make sure all of the angles were within the appropriate range; the rest was essentially taken from the lecture slides. <br>
-``Python
+```Python
 def compute_control(cur_pose, prev_pose):
     """ Given the current and previous odometry poses, this function extracts
     the control information based on the odometry motion model.
