@@ -713,7 +713,7 @@ Because the simulator expects measurements in 20 degree intervals, we can't just
 <br> <br>
 
 <Center> <h1> Lab 8: Localization I: Simulation </h1> </Center>
-To start this simulation lab, I followed the usual procedure and downloaded the lab code framework from the class github page. After successfully running the setup script and opening the Python code in Jupyter Lab, I also had to start the simulator and plotter using the lab 8 manager in order to see the results of my implementation of the Bayes filter. Once I ran the provided setup code and saw that the robot moved in the simulator and its position was displayed in the plotter, I then began translating my pseudocode in Lab 7 into a runnable implementation of the Bayes filter. My final code (with explanations) is below <br>
+To start this simulation lab, I followed the usual procedure and downloaded the lab code framework from the class github page. After successfully running the setup script and opening the Python code in Jupyter Lab, I also had to start the simulator and plotter using the lab 8 manager in order to see the results of my implementation of the Bayes filter. I also familiarized myself with the provided helper functions during Thursday's in-class activity. Once I ran the provided setup code and saw that the robot moved in the simulator and its position was displayed in the plotter, I then began translating my pseudocode in Lab 7 into a runnable implementation of the Bayes filter. My final code (with explanations) is below <br>
 <br>
 To start, I save all my object functions/variables in local variables so they don't have to be repeatedly accessed using dot notation inside of the massive loops; this significantly speeds up the code. <br>
 ```Python
