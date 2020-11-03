@@ -885,7 +885,7 @@ for t in range(0, traj.total_time_steps):
     print("-------------------------------------")
 ```
 <br>
-When I ran this code, the predicted belief (in yellow) tracked the ground truth (green) quite closely! It completely outperformed the simple odometry (purple) in describing the robot's position in the grid space, even given the noise in sensor readings. Althought this took just under an hour to run, this illustrates the effectiveness of the Bayes filter for localizationa and mapping, and optimizing this algorithm for execution speed may be very useful to localize finer grid spaces more quickly and may prove handy in later labs.<br> 
+When I ran this code, the predicted belief (in yellow) tracked the ground truth (green) quite closely! It completely outperformed the simple odometry (purple) in describing the robot's position in the grid space, even given the noise in sensor readings. While this algorithm takes a relatively long time to run, these plots illustrate the effectiveness of the Bayes filter for localizationa and mapping, and optimizing this algorithm for execution speed may be very useful to localize finer grid spaces more quickly and may prove handy in later labs.<br> 
 <img src="functional_filter.png"><br>
 Interestingly, the above plot was generated when I forgot to convert from grid to world coordinates in the inner loop of the prediction step code. Below is a plot of ground truth (green) and belief (yellow) when this conversion was included. Somehow this plot does not seem to be as accurate as the above one, but this may just be due to noise in the sensor readings that throws off the belief in the lower plot; it is, after all, inherently random so in theory anything may be possible. <br>
 <img src="from_map.png"><br>
