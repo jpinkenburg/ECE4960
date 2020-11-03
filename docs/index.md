@@ -710,3 +710,79 @@ Looking at the maps above, we can see that the TOF sensor on the robot can detec
 After playing around with the real robot, I then coded the same map in the VM simulator for use in future labs: <br>
 <img src="vm_map.png"><br>
 Because the simulator expects measurements in 20 degree intervals, we can't just feed the data into the plotter/simulator as I did with the map and the real robot. Looking at the data I collected with my robot, I noticed that each rotation generated 300+ datapoints, or just under 1 measurement for every degree of motion. To pare down the measurements, I could take the average of a few locations clustered about the angle that I want to measure at, and I could weight them by their angular distance to the desired heading (i.e. the closest value would get the highest weight in the average, could also use an exponentially decreasing weight). Because angles might change rapidly, we can also instate a cutoff distance value at which no other angles would be considered (if the measurement closest to the desired heading differs drastically from a measurment that is a few degrees off, we can ignore the second measurement in the calculation in case there is a steep gradient). Averaging generally helps decrease noise/error in sensor measurements, so it seems like it would be an advantageous tactic to use in this case where the map is quite sensitive to sensor errors. 
+<br> <br>
+<Center> <h1> Lab 8: Localization I: Simulation </h1> </Center>
+To start this simulation lab, I followed the usual procedure and downloaded the lab code framework from the class github page. After successfully running the setup script and opening the Python code in Jupyter Lab, I also had to start the simulator and plotter using the lab 8 manager in order to see the results of my implementation of the Bayes filter. Once I ran the provided setup code and saw that the robot moved in the simulator and its position was displayed in the plotter, I then began translating my pseudocode in Lab 7 into a runnable implementation of the Bayes filter. My final code (with explanations) is below <br>
+<br>
+To start, I save all my object functions/variables in local variables so they don't have to be repeatedly accessed using dot notation inside of the massive loops; this significantly speeds up the code. <br>
+```Python
+atan2 = np.arctan2
+degs = np.degrees
+mapper = loc.mapper
+sqrt = np.sqrt
+normalize_angle = mapper.normalize_angle
+gaussian = loc.gaussian
+odom_rot_sigma = loc.odom_rot_sigma
+odom_trans_sigma = loc.odom_trans_sigma
+sensor_sigma = loc.sensor_sigma
+xrange = range(loc.mapper.MAX_CELLS_X)
+yrange = range(loc.mapper.MAX_CELLS_Y)
+trange = range(loc.mapper.MAX_CELLS_A)
+npsum = np.sum
+zeros = np.zeros
+get_views = mapper.get_views
+```
+<br>
+Once all of the necessary variables were declared, I then worked to touch up my implementation of the compute_control function from lab 7 that obtains the control information from the current and past states based on the odometry motion model. To do this, I just had to use the provided normalize_angle function to make sure all of the angles were within the appropriate range; the rest was essentially taken from the lecture slides. <br>
+``Python
+def compute_control(cur_pose, prev_pose):
+    """ Given the current and previous odometry poses, this function extracts
+    the control information based on the odometry motion model.
+
+    Args:
+        cur_pose  ([Pose]): Current Pose
+        prev_pose ([Pose]): Previous Pose 
+
+    Returns:
+        [delta_rot_1]: Rotation 1  (degrees)
+        [delta_trans]: Translation (meters)
+        [delta_rot_2]: Rotation 2  (degrees)
+    """
+    dx = cur_pose[0]-prev_pose[0]
+    dy = cur_pose[1]-prev_pose[1]
+    dt = normalize_angle(cur_pose[2]-prev_pose[2]) #Normalize angle change
+    delta_rot_1 = normalize_angle(degs(atan2(dy,dx)) - prev_pose[2]) #is this right
+    delta_trans = sqrt(dx**2 + dy**2) #Change in position
+    delta_rot_2 = normalize_angle(dt-delta_rot_1) #change in theta - original
+
+    return delta_rot_1, delta_trans, delta_rot_2
+```
+<br>
+Once the compute control function was finished, I then implemented the odom_motion_model function that returns the probability that the robot is in the current state given its previous state and the control motion. This function stayed essentially the same as from lab 7. <br>
+```Python
+def odom_motion_model(cur_pose, prev_pose, u):
+    """ Odometry Motion Model
+
+    Args:
+        cur_pose  ([Pose]): Current Pose
+        prev_pose ([Pose]): Previous Pose
+        (rot1, trans, rot2) (float, float, float): A tuple with control data in the format 
+                                                   format (rot1, trans, rot2) with units (degrees, meters, degrees)
+
+
+    Returns:
+        prob [float]: Probability p(x'|x, u)
+    """
+     
+    measured_rot_1, measured_trans, measured_rot_2 = compute_control(cur_pose,prev_pose) #Compute observed location
+    
+    prob_1 = gaussian(measured_rot_1 - u[0],0,odom_rot_sigma) #Compute probabilites of rotations
+    prob_2 = gaussian(measured_trans  - u[1],0,odom_trans_sigma)
+    prob_3 = gaussian(measured_rot_2 - u[2],0,odom_rot_sigma)
+    
+    prob = prob_1*prob_2*prob_3 #Assume independence to compute joint probability
+
+    return prob
+```
+<br> 
+After implementing the 
