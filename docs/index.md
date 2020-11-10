@@ -1390,7 +1390,6 @@ void go(){
   }
   motors.setDrive(0,0,0);
   motors.setDrive(1,0,0);
-}
 ```
 ```C
 void getTOF(){
@@ -1399,6 +1398,105 @@ void getTOF(){
   int dist = distanceSensor.getDistance();
   distanceSensor.stopRanging();
   distanceSensor.clearInterrupt();
-}
+
+```
+This code follows the odometry motion model by incorporating a turn-forwards motion-turn sequence as the robot's motion. When playing around with the sensors on the robot, I noticed that the onboard accelerometer was a terrible measure of odometry; there seemed to be some sort of drift/offset in the sensor readings that made the results wildly inaccurate. Even when I tried measuring the offset through a 'calibration' of the sensor before the robot moved and subtracted that from the subsequent readings, the odometry readings quickly became very large (even when the robot was still) and quickly went off the scale of the map because the errors in acceleration measurements are doubly integrated over time. Although I'm all for noisy odometry, the inaccuracies in these readings were significantly large enough that I decided to move to an alternate means of obtaining odometry by using the TOF sensor. Just before and after each period where the robot drives forward, the TOF readings are recorded and used to calculate the distance that the robot drives forwards. To measure the angle of rotation, the yaw readings from the gyro sensor are recorded. 
+<br>
+Yeet <br><br>
+
+```Python
+---------- UPDATE STATS -----------
+GT index      :  (9, 13, 0)
+Bel index     :  (9, 13, 0) with prob =  0.9999856
+Bel_bar prob at index =  0.0001388888888888889
+
+GT     : (-0.200, 0.700, 180.000)
+Belief   : (-0.100, 0.700, -170.000)
+POS ERROR : (-0.100, -0.000, 350.000)
+---------- UPDATE STATS -----------
+Prediction Step
+Uniform Belief with each cell value:  4.574297857664546e-15
+     | Prediction Time:  0.7201857566833496
+
+---------- PREDICTION STATS -----------
+GT index            :  (12, 15, 9)
+Prior Bel index     :  (12, 16, 9) with prob =  0.0058672
+POS ERROR      : (-0.080, -0.120, -8.900)
+---------- PREDICTION STATS -----------
+Update Step
+     | Update Time:  0.025801420211791992
+
+---------- UPDATE STATS -----------
+GT index      :  (11, 15, 0)
+Bel index     :  (11, 15, 9) with prob =  1.0
+Bel_bar prob at index =  0.004803918002439034
+
+GT     : (0.350, 1.080, 180.000)
+Belief   : (0.300, 1.100, 10.000)
+POS ERROR : (0.050, -0.020, 170.000)
+---------- UPDATE STATS -----------
+Prediction Step
+Uniform Belief with each cell value:  1.8271205230020564e-25
+     | Prediction Time:  1.108736515045166
+
+---------- PREDICTION STATS -----------
+GT index            :  (13, 14, 9)
+Prior Bel index     :  (12, 14, 9) with prob =  0.0104028
+POS ERROR      : (0.120, 0.050, -4.800)
+---------- PREDICTION STATS -----------
+Update Step
+     | Update Time:  0.02637958526611328
+
+---------- UPDATE STATS -----------
+GT index      :  (13, 13, 9)
+Bel index     :  (12, 14, 11) with prob =  0.9968076
+Bel_bar prob at index =  0.0074568457057755146
+
+GT     : (0.680, 0.700, 0.000)
+Belief   : (0.500, 0.900, 50.000)
+POS ERROR : (0.180, -0.200, -50.000)
+---------- UPDATE STATS -----------
+Prediction Step
+Uniform Belief with each cell value:  9.6936114253011e-25
+     | Prediction Time:  1.2289392948150635
+
+---------- PREDICTION STATS -----------
+GT index            :  (11, 10, 13)
+Prior Bel index     :  (14, 10, 15) with prob =  0.0072114
+POS ERROR      : (-0.520, -0.040, -46.000)
+---------- PREDICTION STATS -----------
+Update Step
+     | Update Time:  0.047371864318847656
+
+---------- UPDATE STATS -----------
+GT index      :  (11, 9, 9)
+Bel index     :  (12, 10, 15) with prob =  0.9999232
+Bel_bar prob at index =  0.0047094054396040735
+
+GT     : (0.350, -0.020, 0.000)
+Belief   : (0.500, 0.100, 130.000)
+POS ERROR : (-0.150, -0.120, -130.000)
+---------- UPDATE STATS -----------
+Prediction Step
+Uniform Belief with each cell value:  1.7503630923718764e-09
+     | Prediction Time:  0.9571285247802734
+
+---------- PREDICTION STATS -----------
+GT index            :  (6, 7, 13)
+Prior Bel index     :  (10, 5, 15) with prob =  0.0039489 //for some reason this was wonky, had to tweak some code to get it right in the simulator
+POS ERROR      : (-0.730, 0.460, -44.000)
+---------- PREDICTION STATS -----------
+Update Step
+     | Update Time:  0.033308982849121094
+
+---------- UPDATE STATS -----------
+GT index      :  (7, 10, 13)
+Bel index     :  (7, 10, 14) with prob =  0.9799336
+Bel_bar prob at index =  0.0019072327006029511
+
+GT     : (-0.460, -0.240, 90.000)
+Belief   : (-0.500, -0.300, 110.000)
+POS ERROR : (0.040, 0.060, -20.000)
+---------- UPDATE STATS -----------
 ```
 
