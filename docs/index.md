@@ -1347,4 +1347,58 @@ GT=[-0.6,-0.35,90](cyan):<br>
 <br>
 As seen in these plots, the Bayes Filter does a fairly decent job of localizing the robot in the map based on these 18 sensor readings! As seen in the second image, the Bayes Filter predicts an incorrect location for the green points. Looking at the points in more detail, we can see that there is some ambiguity in the sensor measurements that may lead the filter to conclude that the robot is at the predicted location. For example, the two measurements on the rectangular object in the center of the map aren't squarely on the rectangle and form somewhat of a diagonal line that could be interpreted as part of the wall (piano keyboard) that juts out on the left. In addition, there's a green point halfway between the star and the actual wall that may cause the Bayes Filter to predict incorrectly; however, the computed probability of the robot being in this position is a fair bit lower than for the first point I tried (0.82 vs 0.999), indicating that the confidence in the predicted position is lower (which is good, since it's not completely correct). The prediction for the purple points is even worse - the errors here are quite high. This may be due to the fact that the purple readings are very inconsistent at the bottom of the map in the region where the dresser is. These inconsistencies are significant enough that the filter predicts a different angle to fit the data to the map as well. Playing around with the value of sensor_sigma (a measure of the variance in the sensor readings) in the localization class didn't change the predicted location of the robot either - it only changed the calculated probability that the robot was in that location (changing sensor_sigma from 0.11 to 0.25 kept the predicted position the same but decreased the probability from 0.64 to 0.32). Running the Bayes filter on the cyan points once again returns a reasonable value for the predicted location and presents a fairly low error with a high confidence. In this case, the sensor measurements are quite representative of the map itself and the Bayes filter can localize well (as in the first example with the red points). Since the Bayes filter is run for every grid cell in the 4m x 4m square, it would be interesting to see if setting the inital probability of the grid cells that are outisde of my map to zero would have an effect on the accuracy of the Bayes filter; unfortunately, I did not have enough time to try this because of all the time I sunk into trying to get the Bluetooth module to work. <br> 
 <br>
-After showing that offline localization using the Bayes Filter worked, I then looked to get a quasi-online localization with a sequence of localization-rotation-localization using the odometry motion model. 
+After showing that offline localization using the Bayes Filter worked, I then looked to get a quasi-online localization with a sequence of localization-motion-localization using the odometry motion model. To do this, I programmed the robot to loop through a sequence of 1) rotating 2) Driving Forwards 3) rotating 4) localizing, and then repeating. Because the bluetooth inside of the VM wasn't really up to par, I did this through the Arduino IDE using the following code: <br>
+```C
+while (count < 5){
+	wait(); //wait for command to start turning
+	rotScan(); //begin rotational scan
+	delay(1000);
+	turn(); //perform rotation
+	delay(1000);
+	go(); //go forwards
+	delay(1000);
+	turn(); //perform rotation
+	getTOF(); //get odometry
+}
+```
+With the following functions defined (PID, rotScan are the same as in the previous part of this lab): <br>
+```C
+void turn(){
+  float turnYaw = 0.0;
+  //wait to start()
+  while(!Serial.available()){
+    myICM.getAGMT();
+    yaw = -1 * (float)myICM.gyrZ();
+    float dYaw = yaw*(millis()-prevTime)/1000.0;
+    turnYaw += dYaw;
+    float pidVal = getPID(yaw);
+    motors.setDrive(0,0,min(pidVal+100,255));
+    motors.setDrive(1,1,80);
+  }
+  motors.setDrive(0,0,0);
+  motors.setDrive(1,0,0);
+}
+```
+```C
+void go(){
+  while(Serial.available()){
+    char c = Serial.read();
+  }
+  motors.setDrive(0,1,80);
+  motors.setDrive(1,1,80);
+  while(!Serial.available()){
+  }
+  motors.setDrive(0,0,0);
+  motors.setDrive(1,0,0);
+}
+```
+```C
+void getTOF(){
+  distanceSensor.startRanging();
+  while(!distanceSensor.checkForDataReady()){}
+  int dist = distanceSensor.getDistance();
+  distanceSensor.stopRanging();
+  distanceSensor.clearInterrupt();
+}
+```
+
