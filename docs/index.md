@@ -1302,4 +1302,35 @@ After looking at some posts on Campuswire, I added a bounding box to my map so t
 <img src='bounded_map.png'><br>
 I also tried bounding my box with a smaller area, but this threw off my ground truth coordinates, even when they were hard-coded in. I changed the parameters in the instantiation of the mapper (min/max x/y, number of cells in the grid), but this didn't alleviate the issue. The larger grid didn't seem to have an effect on the predicted output of the Bayes filter and only increased the computation time when precaching views (~15 seconds for the smaller 12x12 grid compared to ~40 seconds for the standard 20x20 grid). <br>
 Once I became familiar with the provided Jupyter notebook, I then worked to implement the functions in the RealRobot class. After spending quite a while trying (read: struggling) to get the Bluetooth to reliably connect to and receive data from the robot, I decided to send control commands to the robot from my host OS rather than continuing to spend several more hours trying to get the Bluetooth working inside of the Jupyter Notebook. While this would mean that the localization with the prediction step would no longer be truly "online," the robot would still have to stop between sequences of rotation-translation-rotation in order to measure the ground truth odometry values and perform the prediction step even when the Bluetooth module was working well inside of the VM; manually entering the data is a pretty decent method to obtain the same result and put an end to the stack exchange rabbit hole that I managed to dig myself into. <br>
-After figuring out how to proceed, I then began the lab in earnest by working on offline localization using solely the update step of the Bayes Filter. To do this, I marked several locations in my room and measured their ground truth positions using a tape measure. At each of these locations, I performed a rotation of the robot using the code below:
+After figuring out how to proceed, I then began the lab in earnest by working on offline localization using solely the update step of the Bayes Filter. To do this, I marked several locations in my room and measured their ground truth positions using a tape measure. At each of these locations, I performed a rotation of the robot using the Arduino IDE code below:<br>
+```C
+distanceSensor.startRanging();
+  prevTime = millis();
+  int i = 0;
+  float yaws[18];
+  float dist[18];
+  while(totYaw < 360 && totYaw > -360 && i < 50){
+    if (distanceSensor.checkForDataReady()){
+      distance = distanceSensor.getDistance();
+      distanceSensor.stopRanging();
+      distanceSensor.clearInterrupt();
+      distanceSensor.startRanging();
+      if(totYaw > i*20){
+        yaws[i] = totYaw;
+        dist[i] = (float)distance;
+        i++;
+      }
+    }
+    myICM.getAGMT();
+    yaw = -1 * (float)myICM.gyrZ();
+    totYaw += yaw*(millis()-prevTime)/1000.0;
+    float pidVal = getPID(yaw);
+    motors.setDrive(0,0,min(pidVal+100,255));
+    motors.setDrive(1,1,50);
+  }
+  motors.setDrive(0,0,0);
+  motors.setDrive(1,1,0);
+```
+The <i>yaws</i> and <i>dist</i> arrays were then recorded. In this code, the getPID function is identical to the one described in Lab 6 with a set point of 30 degrees/second. This code automatically pares down the measurements into the 18 TOF readings required by the Bayes Filter code; the 18 values are selected by picking the reading with the closest angle after the desired one (e.g. for the second measurement, take the first reading after the angle is >20 degrees). While interpolating the data might be slightly more precise and there may be some issues if there are large edges/gradients in the scene (especially if one occurs near the desired angle), this method of selecting points is computationally efficient and results in errors that are sufficiently small; afer looking at the data, the measuerments occur within ~2 degrees of the desired angle - since the gyro has some inherent error in measurement as well, this error is perfectly acceptable given the sensitivity of the readings. This code was executed for each of 4 locations scattered about the room that I felt would generate a pretty good map. Below is a plot of the sensor readings overlaid on the map; each color spot corresponds to the robot rotating about the point indicated by the star of that color. <br>
+<img src="all_measurements.png"><br>
+These scans produced a pretty good map of the room on their own - the only noticeable issues occur in the top and bottom right of the map. I suspect that issues at the top of the map are a result of the robot not spinning perfectly about its own axis (the PID loop only controls the speed of one wheel in order to achieve a slow speed) and reflective surfaces. Scattered points inside of the dashed box in the bottom of the map may be due to interference from the top of my dresser in that area (this was discussed in more detail in the lab 7 report). Once I obtained these scans and verified that the 
