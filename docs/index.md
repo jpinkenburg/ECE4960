@@ -2,7 +2,7 @@
     ul li { margin-bottom: 10px; }
 </style>
 <Center> <img src="me.jpg" alt="Jade"><br>
-<h1>About Me</h1></Center>
+<p style="font-size:30px"> <b> About Me </b> </p></Center>
 Hi! My name is Jade and I'm super excited to take this class! Here are some (hopefully) fun facts about me:
 <li> I'm currently a junior studying ECE and minoring in robotics </li>
  
@@ -1290,3 +1290,14 @@ POS ERROR : (-0.086, -0.067, 1.038)
 ```
 The Bayes filter should work when the map is asymmetrical and it is easy to figure out the robot's positon based on its surroundings. If the map is symmetrical or if one set of sensor readings could adequately describe two different locations on the map, then the Bayes filter would no longer be as effective. The rather large spacing of the grid cells (0.2 m apart) may also make errors sligthly more drastic, as an incorrect prediction would then be at least 0.2 m (or 20 degrees) off of the ground truth position of the robot. The Bayes filter performance is also improved when the ground truth is located towards the center of the cell (closest to what from_map returns from a cell) <br>
 Other than the rather long computational time of the Bayes filter algorithm, there were also some more pain points in the lab that I had to deal with. Occasionally, Jupyter notebook would crash for some reason and I had an issue with the plotter once or twice. I also got the windows blue screen of death at some point :( - while I'm not exactly a fan of Jupyter notebook, it's autosave feature really came in handy then
+<br>
+<br>
+
+<Center><h1> Lab 9: Localization with the Real Robot </h1> </Center>
+<p style="color: green;font-size:18px"> <b> Setup </b> </p>
+To start, I first had to clean up my room and do the laundry so I could set up the map for the physical robot from lab 7 once again. After recreating the map using the strips of tape I left on my floor, I then went into my VM and downloaded the provided lab 9 distribution code. After taking a look at the Jupyter notebook and verifying that the simulator and plotter features of the lab manger were functional, I then began the task of getting the Bluetooth to pass through to the VM. Although this should have been a simple 5 minute procedure, getting the VM to pick up on the Bluetooth dongle quickly became a whole ordeal since VirtualBox somehow refused to detect any usb devices connected to my laptop. After several hours of troubleshooting, I (according to Vivek's advice) copied my VM from VirtualBox and downloaded VMWare to host the Ubuntu VM instead. After fiddling around with it a bit, I was finally able to get the VM to detect the Bluetooth dongle and send commands to the robot, but I still had persistent issues with connecting to the robot and sending data reliably (even when sending the same data structure several times for redundancy). <br>
+Once I figured out the whole bluetooth issue, I then started playing around with the provided code in the Jupyter notebook. On the first pass through the code (simply running every box), I quickly ran into an error after entering my map coordinates from Lab 7b into the plotter: <br>
+<img src='error_nobox.png'><br>
+After looking at some posts on Campuswire, I added a bounding box to my map so that it fits the 4m x 4m area described in the lab. I also had to shift the coordinates of my map so that they fit inside of this box (previously defined coordinates were in [0,2.4] x [0,2.4]): <br>
+<img src='bounded_map.png'><br>
+I also tried bounding my box with a smaller area, but this threw off my ground truth coordinates, even when they were hard-coded in. I changed the parameters in the 
