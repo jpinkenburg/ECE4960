@@ -1502,4 +1502,280 @@ POS ERROR : (0.040, 0.060, -20.000)
 ---------- UPDATE STATS -----------
 ```
 As seen in the image above, the Bayes Filter localizes quite well and tracks the ground truth values fairly accurately. While the odometry in this case also follows the ground truth pretty well, this is because I kind of cheated by using the TOF sensor, which requires more user intervention and is much more accurate + less noisy than odometry informed by an onboard accelerometer. However, this may not be an issue because the odometry did not seem to have a significant effect on the predicted location of the robot; solely running the update step of the Bayes filter produced a map that was nearly identical to the one shown above (looking at the code, the predictions from the prediction step were pretty poor to begin with). However, when I tried incorporating the prediction step on other locations where the filter did not localize well, the added odometry data improved the results to some extent. Although the prediction step is nice to have, it takes much longer to compute than the update step (avg of 1.0 seconds to run the prediction step vs avg of 0.033 seconds to run the update step) due to the massive number of nested for loops in the code (need to loop over all grid cells for each cell in the map); since the prediction step did not significantly improve the localization of the Bayes filter, it may be beneficial to neglect this step if the robot localizes well with high confidence. In previous trials, I noticed that points that localized with a high error tended to have a lower probability/confidence - maybe a threshold could be implemented to incorporate the prediction step if the robot does not localize well based on the update step alone. <br>
-Based on the results above, it seems like the biggest source of error in my predictions computed by the Bayes filter arise from the discretization of the grid cells; it appears from the statistics above that the predicted locations of the robot were all within ~15 cm of the ground truth in either direction. Because the grid cells are spaced 20cm apart, it is reasonable to attribute the errors in prediction largely to the ground truth not lying in the middle of the grid cell. There could also be several grid cells in the vicinity of the ground truth that have similar (high) probabilites and the filter simply picks one that is not as close to the ground truth. It would be interesting to see if making the grid more fine (less spacing between grid cells) would improve the localization of the Bayes filter in this case! It would also be interesting to find out if the starting configuration of the Bayes filter (i.e. uniform distribution vs point distribution centered on the initial starting position) would significantly affect the predictions
+Based on the results above, it seems like the biggest source of error in my predictions computed by the Bayes filter arise from the discretization of the grid cells; it appears from the statistics above that the predicted locations of the robot were all within ~15 cm of the ground truth in either direction. Because the grid cells are spaced 20cm apart, it is reasonable to attribute the errors in prediction largely to the ground truth not lying in the middle of the grid cell. There could also be several grid cells in the vicinity of the ground truth that have similar (high) probabilites and the filter simply picks one that is not as close to the ground truth. It would be interesting to see if making the grid more fine (less spacing between grid cells) would improve the localization of the Bayes filter in this case! It would also be interesting to find out if the starting configuration of the Bayes filter (i.e. uniform distribution vs point distribution centered on the initial starting position) would significantly affect the predictions.
+<br>
+<br>
+
+
+<h1> Lab 10: Path Planning and Execution </h1>
+<p style= "color: green; font-size: 18-px"> Map Setup </p>
+The first step in doing this lab was figuring out where to start. Unlike the past labs, where we were given some base framework and some steps to follow, this one was much more open-ended and figuring out how to solve the problem most efficiently given the system and time constraints was more difficult than I initially anticipated. <br>
+<br>
+To start, I first had to set up a new map at my house since I left Ithaca for Thanksgiving break and could not do the lab beforehand due to semifinals. This new map was about 2.5m x 1.8m in size and still had enough obstacles to make it “interesting” - check out the image below to see what it looks like! 
+<img src="mapImg.jpg"> <br>
+Once I set up the map, I then had to measure its dimensions using a tape measure and recreated the map in Python and visualized it using matplotlib: 
+<img src="emptymap.png"> <br>
+After verifying that all the dimensions checked out and that the map was accurate in Python, I then created an occupancy grid using NumPy that discretized the map (after typing it in, I realized that I flipped the axes, so I just took the transpose of the grid): <br>
+```
+occupancyMap = np.array([
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
+])
+occupancyMap = occupancyMap.T
+```
+The grid can be seen below in the matplotlib visualization:<br>
+<img src= "matplotmap.png"><br>
+<br>
+<p style= "color: green; font-size: 18-px"> Thought Process </p>
+     Now that all the grunt work in fixing the map was done, I then had to start thinking about how I wanted to implement the autonomous path planning and execution (i.e. the objective of the lab). Maybe because I was subconsciously primed by labs 7-9, I immediately thought of using the Bayes Filter to localize the robot position at several points throughout its journey across the map because the accelerometer data on the robot is quite noisy and the gyro sensor drifts over time; however, I realized that I would have to keep the use of this algorithm to a minimum because it takes quite a bit of time to run and thus the robot wouldn’t be as fast in autonomously navigating to the goal (another objective of this lab). <br>
+          Because onboard computation is slow on the tiny Artemis Nano compared to algorithm execution on my laptop, I then thought of performing all of the path planning on my laptop and then sending control commands to the robot over Bluetooth. Given that I already had a discrete occupancy grid (and that I wanted to try my hand at implementing a graph search algorithm that wasn’t Dijkstra’s), I decided to implement the A* algorithm to find an efficient path from a given start location to a given end location. Given this path, I could then compute control movements (e.g., “drive forward for 100 cm,” “turn 90 degrees clockwise,” etc.) for the robot to follow. By solely using the global planner given that the initial position of the robot is known, we can avoid the need to localize the robot’s position using the Bayes filter as the robot travels throughout the map if the sensors are accurate enough, thus making the robot much faster. From labs 5 and 6, I knew that the TOF sensor readings were quite accurate and the gyro sensor readings were also fairly accurate over short periods of time before the drift started to affect it (~ < 2 degrees difference for a 90 degree turn). Therefore, if I used the TOF sensor as a measure of distance traveled and the gyro sensor as a metric for turning, the readings should ensure that the odometry is accurate enough so that the Bayes Filter would not have to be used for localization as the robot navigates the map (subject to experimental validation, of course); this is especially true since the map is not so large and small variations in sensor readings (resulting in slightly imprecise turns and distances traveled) should not dramatically affect the end position of the robot. <br>
+          Initially I thought that the robot would have to initially run the Bayes Filter to obtain its initial position, but it turns out that I misread the lab report handout and realized that the robot and global planner could just be given the starting position. Therefore, I tried to code up autonomous navigation without using the Bayes Filter at all, which would save quite a bit of time. <br> <br>
+
+<p style= "color: green; font-size: 18-px"> Implementation  </p>
+          To start implementing the global planner, I wrote an implementation of the A* algorithm based on the lecture notes and this useful page from Stanford’s CS department: (http://theory.stanford.edu/~amitp/GameProgramming/AStarComparison.html). The heuristic I chose favored straight-line paths over turns since turning takes more time than traveling straight. This algorithm considered all directly adjacent neighbors (East, South, North, West) of a given position and analyzed the cost associated with them. The frontier set was structured as a binary heap based on the total cost to reach that node from the starting position. To accomplish this, I used python’s inbuilt heapq library to organize the binary heaps and wrote a node class that stored the relevant information associated with each position that is considered by the algorithm (location in map, cost, parent node, orientation). Without further ado, here is the code I wrote to do this: <br>
+
+```Python
+from heapq import *
+import numpy as np
+class node:
+    def __init__(self,pos,dirr="N",cost=0,parent=None):
+        self.pos = pos
+        self.cost = cost
+        self.parent = parent
+        self.priority = 0
+        self.dirr = dirr
+    def return_neighbors(self):
+        return([node([self.pos[0],self.pos[1]+1],"E"),node([self.pos[0]+1,self.pos[1]],"N"),node([self.pos[0]-1,self.pos[1]],"S"),node([self.pos[0],self.pos[1]-1],"W")])
+    def __eq__(self,obj):
+        if obj == None:
+            return self.pos == None
+        return obj.pos == self.pos
+    def __lt__(self,obj):
+        return self.priority < obj.priority
+ 
+def astar(startPos,mapp,goal,orientation):
+    fronteir = []
+    start = node(startPos,orientation)
+    heappush(fronteir,start)
+    goal = node(goal,orientation)
+    start.parent = None
+    start.cost = 0
+    visited = [ ]
+    while fronteir != []:
+        n = heappop(fronteir)
+        print(n.pos)
+        if n == goal:
+            l = []
+            while n.parent != None:
+                l.append(n.pos)
+                n = n.parent
+            l.append(start.pos)
+            l.reverse()
+            return l
+        for a in n.return_neighbors():
+            if mapp[a.pos[0],a.pos[1]] == 0:
+                new_cost = n.cost + 1 #(graph cost)
+                if a not in visited or new_cost < a.cost:
+                    a.cost = new_cost
+                    if a.dirr != orientation:
+                        orientation = a.dirr #punish turns
+                        new_cost += 2
+                    a.priority = new_cost
+                    heappush(fronteir,a)
+                    a.parent = n
+                    visited.append(a)
+```
+The algorithm only considers those nodes that are accessible by the robot (have a value of 0 in the occupancy grid). The heuristic was determined via trial and error (penalizing turns by an additional 2 when the standard cost is 1 for straight-line motion resulted in less jagged paths). In addition, the algorithm takes the starting orientation as an input so it can try and calculate the optimum path taking turns into consideration. In hindsight, the cost field in the node class was not actually necessary and I could have considered diagonally adjacent nodes to further optimize the path. <br>
+          Once I played around with the A* algorithm a bit and made sure that there were no bugs in the code, I tested my implementation by randomly selecting start and end positions in the map and calculating the path between them. Here are some paths that were generated by the algorithm (start node in green, end in red, intermediate path nodes in pink): <br>
+<img src="randmap1.png"><br>
+<img src="randmap2.png"><br>
+<img src="randmap4.png"><br>
+<img src="randmap3.png"><br>
+As seen in the last map, the algorithm is not perfect in getting paths that are not jagged, but I didn’t want to use a stronger deterrent for turns since A* is no longer optimal with an inadmissible heuristic (and I assumed that my heuristic is admissible since the paths are pretty good). This may be improved by considering diagonal neighbors of a node and changing the heuristic a bit. <br>
+Once I showed that the algorithm worked, I then had to translate the resulting path into a series of control instructions for the robot to follow. To do this, I wrote some quick python code that followed the path and looked at where the robot should go from each node in the path starting at the initial position. These control actions for each node were combined as much as possible (e.g., if two “drive straight” instructions were in a row, just drive 40 cm since the grid cells are spaced 20 cm apart). The Python function then returned an array of integers that described the robot’s control actions. For simplicity, I just said that the robot would always start pointing in the positive X direction as defined by the occupancy grid. Here is the code I wrote to do this: <br>
+```
+def compute_control(map,start,end):
+   path = np.array(astar(start,map,end,"N"))
+   controls = []
+   #Always start pointing down x axis
+   orient = np.array([1,0])
+   #rotate so it's going in the right direction
+   firstRot = path[1]-path[0]
+   if (orient != firstRot).all():
+       controls.append(90*np.cross(orient,firstRot)+150) #add some nonsense number to keep in 0,255 for bytearray
+       orient = firstRot
+  
+   dist = -1
+   for i in range(len(path)):
+       if i != 0:
+           diff = path[i]-path[i-1]
+           dist += 1
+           if (diff != orient).all():
+               controls.append(dist)
+               controls.append(90*np.cross(orient,diff)+150)
+               dist = 0
+               orient = diff
+      
+   controls.append(dist+1)
+   return controls
+```
+For example, the third path from above returns a control sequence of (1, 240, 4, 60, 2, 240, 1, 60, 1) => drive 20 cm, turn 90 deg, drive 80 cm, turn -90 deg, drive 40 cm, turn 90 deg, drive 20 cm, turn -90 deg, drive 20 cm. <br>
+These controls were then sent to the robot via Bluetooth using the framework from Lab 2 - this took me a little while to figure out since my Bluetooth module is kinda janky. Getting the Bluetooth module to work in the VM for Lab 9 somehow messed up the drivers on my host OS so I had to do all the bluetooth stuff in the VM. To transmit the control information, I simply executed the compute_control function and sent the data to the robot in the myRobotTasks() loop in the Bluetooth framework. The array from the compute_control function was sent using this function that I wrote for the robot class: <br>
+``` Python
+async def __bleak_sendControl(self,ctrlArr):
+       print("Sending Control Information!!")
+       await self.bt_interface.write_gatt_char(
+           Descriptors["RX_CHAR_UUID"].value,
+           bytearray([Commands.CONTROLS.value] + [len(ctrlArr)] + ctrlArr)
+       )
+```
+<br>
+When the Artemis board receives the Bluetooth commands, it immediately executes a function that performs the control movements (I disabled some of  the timer interrupts so the code wouldn’t quit out early). This function identifies if each element in the array is a turn or forward motion and executes the corresponding actions sequentially. For turns, the robot starts rotating one wheel using PID control and turns until it reads that the yaw obtained from the gyro sensor has changed by +/- 90 degrees from its initial position - by using the beginning of the turn as a reference, this minimizes the effects of gyro sensor drift. To get PID working again, I had to recalibrate my controller because the floors aren’t the same at my place in Ithaca as my living room at home (this took a while to get right). For forwards motions, the robot records the initial TOF sensor readings (averaged over 10 readings for an accurate measurement) and drives forwards (by setting each motor power to 120) until the TOF readings indicate that the robot has traveled the appropriate distance. The code for this is below: <br>
+```C
+void do_everything(cmd_t* c){
+  Serial.println("DOING EVERYTHING");
+  int numControls = (int)c->length;
+  for(int m=0;m<numControls;m++){
+    int controlNum = 0;
+    controlNum = c->data[m];
+    Serial.println(controlNum);
+    if (controlNum > 20){ //Turning
+      if (controlNum == 60){
+        Serial.println("TURNING -90");
+        turnNeg90();
+      }
+      else{
+        Serial.println("TURNING 90");
+        turn90();
+      }
+    }
+    else{
+      float initialDist = getDist();
+      Serial.print("DRIVING ");
+      Serial.print(20*controlNum);
+      Serial.println(" cm");
+      distance = initialDist;
+      
+      while (initialDist-distance < 200*controlNum){ //start moving
+        if (distanceSensor.checkForDataReady()){
+            distance = distanceSensor.getDistance();
+            distanceSensor.clearInterrupt();
+            distanceSensor.startRanging();
+        }
+        motors.setDrive(0,1,120);
+        motors.setDrive(1,1,120);
+      }
+      motors.setDrive(0,0,0);
+      motors.setDrive(1,0,0);
+    }
+  }
+  motors.setDrive(0,0,0);
+  motors.setDrive(1,0,0);
+}
+```
+```C
+float getPID(float curYaw){
+  curTime = millis();
+  dt = (float)(curTime-prevTime);
+  error = setPoint-curYaw;
+  intError += error*dt;
+  dError = (error-prevError)/dt;
+  prevError = error;
+  prevTime = curTime;
+  double intTerm = ki*intError;
+  if (intTerm > 30){
+    intTerm = 30;
+  }
+  return kp*error + intTerm + kd*dError;
+}
+void turn90(){
+  float totalYaw = 0;
+  setPoint = 100; // This is the one to adjust
+  prevTime = millis();
+  motors.setDrive(0,1,150);
+  motors.setDrive(1,0,150);
+  delay(10);
+  while (totalYaw < 84){
+    myICM.getAGMT();
+    yaw = (float)myICM.gyrZ();
+    totalYaw -= yaw*(millis()-prevTime)/1000.0;
+    float pidVal = getPID(-yaw);
+    motors.setDrive(0,0,min(pidVal+60,255));
+    motors.setDrive(1,1,60);
+  }
+  motors.setDrive(0,0,0);
+  motors.setDrive(1,1,0);
+}
+void turnNeg90(){
+  float totalYaw = 0;
+  setPoint = 100;
+  prevTime = millis();
+  motors.setDrive(0,1,150);
+  motors.setDrive(1,0,150);
+  delay(10);
+  while (totalYaw > -84){
+    myICM.getAGMT();
+    yaw = (float)myICM.gyrZ();
+    totalYaw -= yaw*(millis()-prevTime)/1000.0;
+    float pidVal = getPID(yaw);
+    motors.setDrive(0,1,min(abs(pidVal)+80,255));
+    motors.setDrive(1,0,60);
+  }
+  motors.setDrive(0,0,0);
+  motors.setDrive(1,1,0);
+}
+
+float getDist(){
+  distanceSensor.startRanging();
+  float sum = 0.0;
+  for (int i=0; i<10;i++){
+    while(!distanceSensor.checkForDataReady()){}
+   sum += distanceSensor.getDistance();
+   distanceSensor.clearInterrupt();
+   distanceSensor.startRanging();
+  }
+  return sum/10.0;
+}
+```
+<br>
+<p style="color: green; font-size:18-px"> Testing </p>
+To see if my implementation of autonomous navigation worked, I randomly generated some test start and end points and saw if the robot was successfully able to navigate between them. After some tweaks to the PID controller and changes to account for sensor inaccuracy/drift, the results were actually really good! The robot indicates its end position by stopping there. Check out some of the trials below: <br>
+<img src="trialmap1.png"><br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Sns9JUoPhLs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+Trial 2: <br>
+<img src="trialmap2.png"><br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V8iQeT4W3j8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>
+Trial 3: <br>
+<img src= "trialmap3.png"><br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/UBCsAS6fIXM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
+<br><br>
+As seen in the videos, the robot travels pretty fast! Computation of the A* algorithm was estimated to take about 8 ms on average (after calculating 10 paths for random start and end locations), which is negligible compared to the speed of robot motion. Execution of the navigation algorithm is dependent on the distance that the robot needs to travel and how many turns it makes, but based on the videos, the average velocity of the robot is about 23 cm/s; however, this number is not super informative since some paths have many more turns than others, which slows down robot travel significantly. <br>
+The robot tends to overshoot the target a little and does not land in the exact center of the target box, but generally lands at least partially inside of the target square. Considering that the robot is traveling a significant distance autonomously with sensors that more closely resemble bricks than electronics, this is surprisingly accurate! In all the trials shown in the videos, the robot misses the center of the box by at most 10 cm. Changing certain parameters in the robot code seemed to help improve accuracy (e.g., scaling down the distance that the robot travels by a little bit to account for some coasting after the motor power is cut). In addition, the robot can be seen grazing the wall in the first video; this can be remedied by better setting the initial position of the robot (I think I placed it a bit too far from the true initial position) and tweaking some of the distances that the robot travels. See the “improvements” section below for ways that this accuracy could be improved. 
+
+<p style="color: green; font-size:18-px"> Implementation Pros and Cons / Design Considerations </p>
+<b> Pros </b>
+<ul>
+<li> Use of global planner and accurate sensor readings does not require use of the Bayes Filter. This significantly speeds up runtime by eliminating the need for a rotational scan (~ 12 secs at 30 degrees per sec from previous labs), Bluetooth transmission of data from the robot to the computer and back for sensor data transmission and filter results, and Bayes Filter computational time (short update step but relatively long prediction if used). </li>
+<li> Computing the path on my laptop yields a more optimal path than those executed on the robot without using graph search algorithms. Bluetooth transmission time and A* execution time are somewhat negligible compared to robot motion on the ground (~1 second for computation and transmission). </li>
+<li> No need to constantly know what the robot’s heading is and where the goal is with respect to the robot (like in Bug algorithms). This reduces the effect of gyro sensor drift on navigation accuracy </li>
+</ul>
+<b> Cons </b>
+<ul>
+<li> Current A* implementation occasionally produces jagged paths, doesn’t consider additional neighbors </li>
+<li> Navigation is not really robust to errors while the robot is moving. If sensor data is faulty or robot encounters an unexpected obstacle, the robot will most likely not reach its destination </li>
+<li> Robot does not localize itself during navigation (doesn’t really have to for this size of map), doesn’t account for motion variations </li>
+</ul>
+<br> <br>
+<p style="color: green; font-size:18-px"> Future Improvements </p>
+          If I had more time, I would try and implement some local path planning algorithms (Bug algorithms) and see how they compare to the path produced by A*. While the way that I execute the path provided by A* is not the most efficient, I still think that it would be more efficient, on average, than the Bug algorithms because it computes an optimal path and follows that rather than having the robot drive haphazardly along the wall. The A* path execution that I implemented is also more resistant to drift in gyro sensor measurements. For future improvements, it would be interesting to see if allowing the A* algorithm to consider diagonal neighbors would improve the results. Reducing the grid cell spacing may also result in a better path, although it would take longer to compute. Also, instead of strictly following the path grid cells returned by A*, it may be more efficient to follow diagonal lines that connect these grid cells rather than limiting ourselves to 90 degree turns and forward movements; I tried implementing something that would cut corners like this, but unfortunately did not have enough time to do so. It would also be interesting to use other path-finding algorithms that aren’t necessarily tied to a discrete grid (like A*, Dijkstra, etc.); by defining some sort of cost-to-go function based on the obstacles in the map, we could use the continuous gradient of the cost function to generate a continuous path with smooth turns so that the robot wouldn’t have to stop and turn every so often - this is kinda hard, but would be much more efficient and super cool to implement. It may also be useful to continuously stream sensor values to the computer and perform calculations on there. Incorporating the Bayes Filter to see if that would help with accuracy would also be interesting for future efforts. Using the same navigation mechanisms I implemented in this lab, rotating the robot about the axis rather than a single wheel using PID may also improve the accuracy of navigation. It would also be interesting to see if using more sensors would help improve autonomous navigation - I never made use of the proximity sensor on the robot and it would be interesting to try and use it for wall following (if precise enough) or object detection. Mounting more TOF sensors or using accurate accelerometers could also be fun to play around with and can be used to improve the system.
+
+Although all of these ideas sound pretty cool, I simply did not have time to play around with them because I had to set everything up at home, which took a fair amount of time. The bluetooth module was, as always, another pain point of this lab that took away time from working on the lab itself. And of course things had to break as well, so I found myself soldering wires onto the board again (this time for the battery) to keep everything semi-functional.
