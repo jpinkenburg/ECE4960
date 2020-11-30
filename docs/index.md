@@ -1512,7 +1512,7 @@ Based on the results above, it seems like the biggest source of error in my pred
 The first step in doing this lab was figuring out where to start. Unlike the past labs, where we were given some base framework and some steps to follow, this one was much more open-ended and figuring out how to solve the problem most efficiently given the system and time constraints was more difficult than I initially anticipated. <br>
 <br>
 To start, I first had to set up a new map at my house since I left Ithaca for Thanksgiving break and could not do the lab beforehand due to semifinals. This new map was about 2.5m x 1.8m in size and still had enough obstacles to make it “interesting” - check out the image below to see what it looks like! 
-<img src="mapImg.jpg"> <br>
+<img src="mapImg.JPG"> <br>
 Once I set up the map, I then had to measure its dimensions using a tape measure and recreated the map in Python and visualized it using matplotlib: 
 <img src="emptymap.png"> <br>
 After verifying that all the dimensions checked out and that the map was accurate in Python, I then created an occupancy grid using NumPy that discretized the map (after typing it in, I realized that I flipped the axes, so I just took the transpose of the grid): <br>
@@ -1749,13 +1749,13 @@ float getDist(){
 <br>
 <p style="color: green; font-size:18-px"> Testing </p>
 To see if my implementation of autonomous navigation worked, I randomly generated some test start and end points and saw if the robot was successfully able to navigate between them. After some tweaks to the PID controller and changes to account for sensor inaccuracy/drift, the results were actually really good! The robot indicates its end position by stopping there. Check out some of the trials below: <br>
-<img src="trialmap1.png"><br>
+<img src="trial1map.png"><br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Sns9JUoPhLs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
 Trial 2: <br>
-<img src="trialmap2.png"><br>
+<img src="trial2map.png"><br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/V8iQeT4W3j8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>
 Trial 3: <br>
-<img src= "trialmap3.png"><br>
+<img src= "trial3map.png"><br>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/UBCsAS6fIXM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> <br>
 <br><br>
 As seen in the videos, the robot travels pretty fast! Computation of the A* algorithm was estimated to take about 8 ms on average (after calculating 10 paths for random start and end locations), which is negligible compared to the speed of robot motion. Execution of the navigation algorithm is dependent on the distance that the robot needs to travel and how many turns it makes, but based on the videos, the average velocity of the robot is about 23 cm/s; however, this number is not super informative since some paths have many more turns than others, which slows down robot travel significantly. <br>
