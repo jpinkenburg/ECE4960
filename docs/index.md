@@ -1808,9 +1808,29 @@ I wanted to see how close to unstable I could push this controller, so I brought
 Eigenvalues: (-0.05,-0.4,-0.2,-0.1) <br>
 <img src="ridiculously_passive.png"><br>
 To make the system actually become unstable, I had to make the eigenvalues very small. Although the cart flies off the screen again (more quickly this time), we can see that the system becomes unstable by looking at the theta plot - we can clearly see that the pendulum falls out of its inverted state and seems to start rotating wildly (also observed similar behavior when I forgot the negative sign).<br>
-Eigenvalues: (-0.03,-0.04,-0.02,-0.06)
+Eigenvalues: (-0.03,-0.04,-0.02,-0.06)<br>
 <img src="passively_unstable.png"><br>
 Now that I've successfully driven the system to instablility by making it too passive, I wanted to see what would happen if I made the controller too aggressive. Just to see what would happen, I took my original eigenvalues and scaled the first and last entries up by a factor of 100. I totally expected the system to go unstable in some sort of spectacular fashion, but somehow that's not what happened! As seen in the video below, the controller is actually pretty good at making the robot go to its intended location and keeping the pendulum upright! However, the accelerations seen in the video and the plot might be a little extreme for the real robot to actuate/control, so it might not be practical to implement this controller. <br>
-Eigenvalues: (-110,-1.2,-1.3,-140)
+Eigenvalues: (-110,-1.2,-1.3,-140)<br>
 <img src="surprising_aggressive.png"><br>
-After that interesting result, I tried scaling up some of the other values and got a controller thatgets the robot to where we want it very quickly, but the accelerations are even more extreme than in the previous case
+After that interesting result, I tried scaling up some of the other values and got a controller that gets the robot to where we want it very quickly, but the accelerations are even more extreme than in the previous case, most likely making this a less feasible controller than the other one. <br>
+Eigenvalues: (-1.1,-12,-13,-14) <br>
+<img src="even_more_aggressive.png"><br>
+As like before, I wanted too see how aggressive the controller could get before it went unstable - at this point, the counterbalancing motions of the robot were really extreme and it would probably not be feasible nor practical to implement this kind of controller on the real robot. <br>
+Eigenvalues: (-1.65,-12,-13,-14) <br>
+<img src="aggressive_borderline_stable.png"><br>
+I even managed to make the controller go even crazier than that by pushing the poles further into the LHP - the control motion started becoming oscillatory and it seems like this would be a disaster in the real world, not to mention very impractical and not as cool. Fun to watch though! <br>
+Eigenvalues: (-20,-18,-19,-21) <br>
+<img src="aggressive_oscillate.png"><br>
+<br>
+After trying out all of these different controllers, I thought that the initial one I tried was one of the best ones when taking the real robot into consideration. It manages to get to the desired location fairly quickly without significantly overshooting or oscillating, and the required acceleration is not so high that the robot would not be able to execute those control motions. And, it was presented in lecture so it can't be that wrong ;) <br>
+Looking at the signal generation code, I was also curious to see if the Kr controller I selected would be able to handle other kinds of inputs (sin,triangle,sawtooth waves): <br>
+In response to a sinusoidal input, the controller performs quite well; it keeps the theta angle quite close to 180 degrees with little variation after the initial stabilization and the only difference between the cart's motion and the desired path is a slight time delay: <br>
+<img src="good_sin.png"><br>
+To a sawtooth input, the controller still generally follows the path but falls a little short of the endpoints and the trajectory seems like something between a sine wave and a sawtooth wave. Perhaps a more aggressive controller would perform a little better given the sharp changes in direction for this waveform.<br>
+<img src="good_sawtooth.png"><br>
+And indeed it did! Here's a graph of one of the more aggressive controllers from above following the sawtooth pattern more closely: <br>
+<img src="good_sawtooth.png"><br>
+This suggests that controller choice may be based on both system characteristics/limitations and intended trajectories. <br>
+<Center> <b> LQR Controllers </b></Center>
+After fiddling around with the basic Kr-controllers for quite a while, I then moved on to implementing LQR control in the simulator. 
