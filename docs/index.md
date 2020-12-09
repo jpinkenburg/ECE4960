@@ -1819,6 +1819,7 @@ Eigenvalues: (-110,-1.2,-1.3,-140)<br>
 <img src="surprising_aggressive.png"><br>
 After that interesting result, I tried scaling up some of the other values and got a controller that gets the robot to where we want it very quickly, but the accelerations are even more extreme than in the previous case, most likely making this a less feasible controller than the other one. <br>
 Eigenvalues: (-1.1,-12,-13,-14) <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/C0nmyksr_PM?start=5" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <img src="even_more_aggressive.png"><br>
 As like before, I wanted too see how aggressive the controller could get before it went unstable - at this point, the counterbalancing motions of the robot were really extreme and it would probably not be feasible nor practical to implement this kind of controller on the real robot. <br>
 Eigenvalues: (-1.65,-12,-13,-14) <br>
@@ -1832,11 +1833,13 @@ Eigenvalues: (-20,-18,-19,-21) <br>
 After trying out all of these different controllers, I thought that the initial one I tried was one of the best ones when taking the real robot into consideration. It manages to get to the desired location fairly quickly without significantly overshooting or oscillating, and the required acceleration is not so high that the robot would not be able to execute those control motions. And, it was presented in lecture so it can't be that wrong ;) <br>
 Looking at the signal generation code, I was also curious to see if the Kr controller I selected would be able to handle other kinds of inputs (sin,triangle,sawtooth waves): <br>
 In response to a sinusoidal input, the controller performs quite well; it keeps the theta angle quite close to 180 degrees with little variation after the initial stabilization and the only difference between the cart's motion and the desired path is a slight time delay: <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Besy_-xezws?start=19" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <img src="good_sin.png"><br>
 To a sawtooth input, the controller still generally follows the path but falls a little short of the endpoints and the trajectory seems like something between a sine wave and a sawtooth wave. Perhaps a more aggressive controller would perform a little better given the sharp changes in direction for this waveform.<br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Vlrs8jCQKOU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <img src="good_sawtooth.png"><br>
 And indeed it did! Here's a graph of one of the more aggressive controllers from above following the sawtooth pattern more closely: <br>
-<img src="good_sawtooth.png"><br>
+<img src="aggressive_sawtooth.png"><br>
 This suggests that controller choice may be based on both system characteristics/limitations and intended trajectories. <br>
 <Center> <b> LQR Controllers </b></Center>
 After fiddling around with the basic Kr-controllers for quite a while, I then moved on to implementing LQR control in the simulator. At first I thought we still had to use the control library, so I spent 20 minutes trying to install all the dependencies to get the control.lqr() function to work (even installed a conda environment) until I took another look at the lab document and realized we can just use the scipy library to solve the Riccati equation. To implement the LQR control, I simply added the following code to the pendulumParam.py file: <br>
