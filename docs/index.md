@@ -1788,4 +1788,29 @@ The first step in setting up my LQR controller in simulation was to change the e
 Once I had adjusted the necessary parameters to model the real robot more closely, I then started playing around with the provided code. To make sure that everything was working properly, I just ran the simulation code without adding any control. As expected, the pendulum quickly fell off the cart and swung around aimlessly just as it would in real life (and the cart moved a bit because it was being pulled by the pendulum): <br>
 <img src="simulation_noControl.png"><br>
 As seen in the graph above, there may be some issues resulting from the theta discontinuity between 0 degrees and 360 degrees, but because that only happens when the pendulum is not in its upright position, this shouldn't be something we have to worry about in this lab (if the pendulum falls off then we have bigger problems ;)). <br>
-Now that I can trust that the code (at least appears to) properly implements the nonlinear system dynamics, I tried to add some control to make the pendulum stable. To do this, I first started by using a Kr controller and placing poles to make the system stable. To do this, I first had to install the Python control library as suggested in the lab document; I also had to fix some issues in the provided lab code that prevented the data plot from appearing - for it to show, I had to add an input() line at the end of the plotting code so that the graph would not diappear immediately and would stick around until the user dismissed it
+Now that I can trust that the code (at least appears to) properly implements the nonlinear system dynamics, I tried to add some control to make the pendulum stable. To do this, I first started by using a Kr controller and placing poles to make the system stable. To do this, I first had to install the Python control library as suggested in the lab document; I also had to fix some issues in the provided lab code that prevented the data plot from appearing - for it to show, I had to add an input() line at the end of the plotting code so that the graph would not diappear immediately and would stick around until the user dismissed it. Coding up the Kr-controller was fairly simple since we were given the A and B matrices:<br>
+```Python
+import control
+dpoles = np.array([-1.1,-1.2,-1.3,-1.4])
+K = control.place(A,B,dpoles)
+```
+I also had to change the code in pendulumControllerDynamics.py to add in the control (Kr controller control = K matrix * error): <br>
+```Python
+self.u = -self.K * (cur_state-des_state)
+```
+At first I missed the negative sign and the simulation kept going crazy! Once I had straightened that out, I played around with the pole placement a bit to see how it would affect the cart control / stability of the system. The first poles I tried (listed above) were suggested in lecture, and they worked pretty well! <br>
+<img src="initPoles.png"><br>
+After verifying that the system works, I played around with the poles quite a bit to see what effects changes in the eigenvalues would have on the system. Here are some of the greatest hits / most interesting results:<br>
+This controller was super passive and the cart quickly goes off screen, but reappears again towards the very end of the simulation. While it manages to keep the system stable (pendulum clearly does not fall off the cart), the cart's motion doesn't look anything like the desired square wave: <br>
+Eigenvalues: (-0.4,-0.9,-0.5,-1)<br>
+<img src="way_too_passive.png"><br>
+I wanted to see how close to unstable I could push this controller, so I brought the eigenvalues even closer to zero. No video is included here because the cart just flies off the screen never to come back. However, we can see that the system doesn't go unstable by looking at the theta graph (values always close to upright position of 180 degrees). <br>
+Eigenvalues: (-0.05,-0.4,-0.2,-0.1) <br>
+<img src="ridiculously_passive.png"><br>
+To make the system actually become unstable, I had to make the eigenvalues very small. Although the cart flies off the screen again (more quickly this time), we can see that the system becomes unstable by looking at the theta plot - we can clearly see that the pendulum falls out of its inverted state and seems to start rotating wildly (also observed similar behavior when I forgot the negative sign).<br>
+Eigenvalues: (-0.03,-0.04,-0.02,-0.06)
+<img src="passively_unstable.png"><br>
+Now that I've successfully driven the system to instablility by making it too passive, I wanted to see what would happen if I made the controller too aggressive. Just to see what would happen, I took my original eigenvalues and scaled the first and last entries up by a factor of 100. I totally expected the system to go unstable in some sort of spectacular fashion, but somehow that's not what happened! As seen in the video below, the controller is actually pretty good at making the robot go to its intended location and keeping the pendulum upright! However, the accelerations seen in the video and the plot might be a little extreme for the real robot to actuate/control, so it might not be practical to implement this controller. <br>
+Eigenvalues: (-110,-1.2,-1.3,-140)
+<img src="surprising_aggressive.png"><br>
+After that interesting result, I tried scaling up some of the other values and got a controller thatgets the robot to where we want it very quickly, but the accelerations are even more extreme than in the previous case
