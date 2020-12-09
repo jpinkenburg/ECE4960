@@ -1839,6 +1839,7 @@ To a sawtooth input, the controller still generally follows the path but falls a
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Vlrs8jCQKOU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <img src="good_sawtooth.png"><br>
 And indeed it did! Here's a graph of one of the more aggressive controllers from above following the sawtooth pattern more closely: <br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/c-Y21tqLkfw?start=5" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <img src="aggressive_sawtooth.png"><br>
 This suggests that controller choice may be based on both system characteristics/limitations and intended trajectories. <br>
 <Center> <b> LQR Controllers </b></Center>
