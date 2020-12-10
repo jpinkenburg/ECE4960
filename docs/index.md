@@ -1914,5 +1914,16 @@ However, this controller doesn't really follow the intended trajectory and the s
 (Q,R) = (50,400,80,100.0,1)<br>
 <img src="stable_island.png"><br>
 Also found that I could increase the penalties on x and xdot by the same factor and get the same resulting motion! Seeing that obtaining a different controller was fairly difficult, I figured that making the controller follow the desired trajectory isn't that important because we could scale up the input signal to make the robot follow the actual trajectory that we desire. Having a functioning controller, I was then curious to see how robust it was: <br>
-{TRY SAWTOOTH WAVE, SIN WAVE, VARYING THE FREQUENCY/AMPLITUDE OF THE CONTROLLER}
+Dropping down the frequency of the input signal to 0.05 made the controller break since the pendulum was traveling too slowly when the cart arrived at the desired location and the deadband prevented the cart from exerting a control force before it was too late to do so (only small control movements required when the pendulum is fully stable / cart does not have to move anymore). <br>
+Doubling the frequency to 0.2 did not interfere with success of the controller and it was still able to keep the pendulum stable. Interestingly, the actual motion of the cart started to resemble a triangle wave since the cart has to try and hit the desired locations quickly while still keeping the pendulum upright. While the theta spikes seem more dramatic/frequent in the graph below, the range of theta is about the same as above! <br>
+<img src="stable_island.png"><br>
+Decreasing the amplitude also made the controller go haywire, but I doubled the amplitude to 3 and saw that the controller still worked even though the cart moved much faster. <br>
+<img src="amp3.png"><br>
+I tried increasing the amplitude even further to 5 and got this really funny graph. This amplitude at this frequency isn't even realistic since the robot would have to travel quite far in a short amount of time so it's logical (or at least OK), just thought the graph was quirky:<br>
+<img src="lmao.png"><br>
+I also tried to use a sine wave input to see how the deadband controller reacts. To get the controller to stabilize a sine wave input, I adjusted the frequency and amplitude of the input; for a wider range of frequencies we might be able to tune the values of the controller, but this is acceptable since the original controller was designed to respond to a square wave input.  <br>
+<img src="hf_sin.png"><br>
+<br>
+<Center> <b> Adding in Sensor + Parameter Noise </b> </Center>
+Although Kirstin said in lecture that getting the controller to work with sensor noise was no longer required for this lab, I still wanted to see if I could get a controller to work with semi-realistic noise added to the sensor readings (i.e., z and theta)
 {LOOK INTO NOISE, HOW CHANGING PARAMS AFFECTS THE INPUT}
