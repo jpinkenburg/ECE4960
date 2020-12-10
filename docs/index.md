@@ -1885,6 +1885,23 @@ For the controller suggested in lecture (I went with this one for this part of t
 <img src="real_lecture_sin.png"><br>
 <img src="real_lecture_sawtooth.png"><br>
 <br>
-As seen in the graphs, it appears that the first controller is better at following the desired trajectories, but there is a little more variability in theta (although it is still pretty good at keeping theta close to the equilibrium value). To determine which controller is better, it would probably be best to try it out on the real robot, but if the acceleration required is achievable, the former controller may be better than the latter. As discussed above, the values in the Q and R matrices are tailored to make this system controllable with the real robot and aimed to follow the desired trajectory quite closely, although these parameters can be tuned depending on what constraints/requirements are imposed on the real system. <br>
+As seen in the graphs, it appears that the first controller is better at following the desired trajectories, but there is a little more variability in theta (although it is still pretty good at keeping theta close to the equilibrium value). To determine which controller is better, it would probably be best to try it out on the real robot, but if the acceleration required is achievable, the former controller may be better than the latter. As discussed above, the values in the Q and R matrices are tailored to make this system controllable with the real robot and aimed to follow the desired trajectory quite closely, although these parameters can be tuned depending on what constraints/requirements are imposed on the real system. <br> <b> SAY THAT R is a metric of how 'good' the robot is at control - our robot is pretty crappy, Sadie suggested value of 1 </b>
 <br>
 <Center><b> Replicating Reality: Adding Deadband </b></Center><br>
+To make the simulation even more realistic with respect to the real robot, I then tried adding some deadband to the controller to accurately reflect the robot's maximum/minimum possible velocities and accelerations. Due to friction and motor power limitations, the robot cannot exceed a certain speed or acceleration and cannot supply force below a certain threshold (as shown partially in lab 6, see graphs way above). To estimate the maximum acceleration and velocity of the robot, I referred back to that handy collection of data from lab 3 mentioned above and took the average of the maximum acceleration and velocity values found by the class to use for this lab. Based on that spreadsheet, I estimated the robot's maximum acceleration to be 3.8 m/s^2 and the maximum velocity to be 2.7 m/s. Since the control action u is a force, I set an upper bound on its magnitude using Newton's second law F=ma, where m was the mass of the cart-pendulum system m1+m2 and a was the maximum acceleration. Although less important to the simulation, I also restricted the maximum velocity zdot to be 2.7 m/s. I set the minimum force to be 0.1 N (as suggested by Sadie) and estimated the minimum velocity to be 0.1 m/s (based on previous labs). To do all of this, I added the following python code to pendulumControllerDynamics.py after I set the value of u based on the K matrix: <br>
+```Python
+maxForce = (self.m2+self.m1)*3.8 #F=ma
+minForce = 0.1
+maxVel = 2.7
+minVel = 0.1
+
+if abs(self.u) > maxForce:
+	self.us = np.sign(self.u)*maxForce
+elif abs(self.u) < minForce:
+	self.u = np.sign(self.u)*minForce
+if abs(zdot) > maxVel:
+	zdot = np.sign(zdot)*maxVel
+elif abs(zdot) < minVel:
+	zdot = np.sign(zdot)*minVel
+```
+Once the deadband was implemented and I confirmed that it works, I then just tried to use my previous controller to stabilize the pendulum and found that it failed miserably:<br>
