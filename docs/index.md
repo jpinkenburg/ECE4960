@@ -1905,3 +1905,9 @@ elif abs(zdot) < minVel:
 	zdot = np.sign(zdot)*minVel
 ```
 Once the deadband was implemented and I confirmed that it works, I then just tried to use my previous controller to stabilize the pendulum and found that it failed miserably:<br>
+<img src="deadband_initFail.png"><br>
+As seen in the graph, the controller fails almost immediately (presumably due to the deadband, since that's the only thing that changed). I also increased the amplitude of the oscillations to 1.5 and increased the frequency to 0.1 as per Sadie's campuswire post, since the pendulum will almost go unstable if it becomes still because the cart won't react due to the deadband. While this didn't really help with the initial controller I tried, it did come in handy later. <br>
+At first, I actually forgot to introduce a minimum deadband / floor on the control input, so I was suprised to see that the original controller ((Q,R) = (1,1,10,100,1)) actually worked! Then I realized the brash naivete of my approach and added in the min deadband, resulting in the quite sad motion depicted above. After playing around with some values (increasing x penalty to make sure the cart moves to its location, increasing xdot penalty to ensure that the cart is moving at a reasonable speed, thetadot tuned to improve controller), I got a controller that is able to stabilize the system with deadband :) <br>
+(Q,R) = (10,100,10,10,1)<br>
+<img src="working_lqr.png"><br>
+However, this controller doesn't really follow the intended trajectory and the spikes in theta are quite high and I wondered if it was possible to improve this controller (curious to see how trajectory and theta spikes trade off against each other).
