@@ -1844,3 +1844,26 @@ And indeed it did! Here's a graph of one of the more aggressive controllers from
 This suggests that controller choice may be based on both system characteristics/limitations and intended trajectories. <br>
 <Center> <b> LQR Controllers </b></Center>
 After fiddling around with the basic Kr-controllers for quite a while, I then moved on to implementing LQR control in the simulator. At first I thought we still had to use the control library, so I spent 20 minutes trying to install all the dependencies to get the control.lqr() function to work (even installed a conda environment) until I took another look at the lab document and realized we can just use the scipy library to solve the Riccati equation. To implement the LQR control, I simply added the following code to the pendulumParam.py file: <br>
+``` Python
+p1 = 1.0
+p2 = 1.0
+p3 = 1.0
+p4 = 1.0
+Rval = 1.0
+
+Q = np.matrix([
+	[p1,0.0,0.0,0.0],
+	[0.0,p2,0.0,0.0],
+	[0.0,0.0,p3,0.0],
+	[0.0,0.0,0.0,p4]
+])
+R = np.matrix([Rval])
+S = scipy.linalg.solve_continuous_are(A,B,Q,R)
+K = np.linalg.inv(R).dot(B.transpose().dot(S))
+```
+As suggested in lecture, I initialized all of the penalties in the Q and R matrices to 1 and went from there. From this initial setup alone I was able to show that the LQR controller with these matrices was able to stabilize the system. However, I wondered if the variations in theta could be improved by changing the penalties set in the Q and R matrices:<br>
+<img src="lqr_allones.png"><br>
+To try and improve the controller, I tried increasing the penalty on x dot and theta. I thought that theta should be kept quite close to its desired equilibrium state since this would make the system more stable and give the cart more time to react if the system is perturbed / the pendulum starts falling off the cart. I also throught that the velocity xdot should be also kept at a reasonable level since the wheels of the real robot (or the crappy motors themselves) aren't very conducive to jittery motions or fast accelerations, and I wanted the simulation to try and account for these potential issues in the real world. <br>
+<img src="lqr_take2.png"><br>
+While the motion appeared to be a bit more smooth, this might not be such an appropriate controller because the cart never actually reaches its desired location. To try and fix this, I also tried a set of penalties described in lecture, where the penalties on theta and theta dot were set to 10 and 100, respectively. This also worked quite well:
+<img src=".png"><br>
