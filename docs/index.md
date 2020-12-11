@@ -1928,7 +1928,7 @@ I also tried to use a sine wave input to see how the deadband controller reacts.
 Although Kirstin said in lecture that getting the controller to work with sensor noise was no longer required for this lab, I still wanted to see if I could get a controller to work with semi-realistic noise added to the sensor readings (i.e., z and theta). To start, I first had to obtain some values to use for the sensor noise. Luckily I had some foresight in Labs 5 and 6 and managed to record the standard deviations of the noise in the IMU and TOF sensors. From my lab reports: accelerometer stdev = 0.0601, gyro sensor stdev = 1.44, TOF stdev = 0.015 (TOF in cm, accel in m, gyro in dps). For simplicitly, I assumed that the  To add noise to the system, I modeled it as a Gaussian distribution with the mean as the true value and the standard deviation; since the accelerometer standard dev was much higher than the TOF, I simply used the TOF noise for sensor readings, since the TOF sensor is much more precise than obtaining odometry/position from the accelerometer. To do this, I simply used the gaussian function provided by NumPy:<br>
 ```Python
 tofSD = 0.015
-gyroSD = 1.44
+gyroSD = np.deg2rad(1.44)
 z = np.random.normal(z,tofSD)
 theta = np.random.normal(theta,gyroSD)
 ```
@@ -1942,4 +1942,4 @@ After having trouble getting the controller to work with deadband, I took Sadie'
 <img src="a_christmas_miracle.png"><br>
 Although the input signal is unrealistically large, the amplitude of the cart's motion actually isn't so large and may still be within the realm of plausibility. Either way, the controller is still able to stabilize the pendulum when including both noise and deadband! This approach also worked with a sinusoidal input: <br>
 <img src="sin_miracle.png"><br>
-After getting all of that noise stuff squared away, I then looked into how parameter changes (
+After getting all of that noise stuff squared away, I then looked into how parameter changes
