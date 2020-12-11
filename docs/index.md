@@ -1942,4 +1942,4 @@ After having trouble getting the controller to work with deadband, I took Sadie'
 <img src="a_christmas_miracle.png"><br>
 Although the input signal is unrealistically large, the amplitude of the cart's motion actually isn't so large and may still be within the realm of plausibility. Either way, the controller is still able to stabilize the pendulum when including both noise and deadband! This approach also worked with a sinusoidal input: <br>
 <img src="sin_miracle.png"><br>
-After getting all of that noise stuff squared away, I then looked into how parameter changes
+After getting all of that noise stuff squared away, I then looked into how changes in the parameters affected the stability of the system. To simplify this analysis a bit, I got rid of the noise in the sensors for this portion of the lab so we can more effectively investigate how fluctuations in each parameter affect the stability of the system. 
