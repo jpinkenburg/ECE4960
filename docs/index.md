@@ -1938,3 +1938,8 @@ However, after fiddling around with it for quite some time, I finally got someth
 (Q,R) = (0.1,1,1,10,1000)<br>
 <img src="randomNoise.png"><br>
 Again, unfortunately I was unable to take a screen recording because the software actually turns my VM into a brick, but the controller's success should be apparent from the graph above. For this controller to work I had to set R to be very large and the motion of the cart doesn't really track the input signal very much. However, since the objective is to create a stable system, it is able to successfully balance the pendulum without falling :) <br>
+After having trouble getting the controller to work with deadband, I took Sadie's campuswire advice and tried to make the input signal amplitude even larger to get the controller to continuously move the pendulum to make up for the deadband. Figuring that a very large input signal (and therefore a fairly large z value) would drown out any significant noise effects, I set the amplitude of the input signal to be very high and was suprised to see that the controller was able to keep the pendulum stable with noise and deadband included! Below is a plot of the robot's motion:<br>
+<img src="a_christmas_miracle.png"><br>
+Although the input signal is unrealistically large, the amplitude of the cart's motion actually isn't so large and may still be within the realm of plausibility. Either way, the controller is still able to stabilize the pendulum when including both noise and deadband! This approach also worked with a sinusoidal input: <br>
+<img src="sin_miracle.png"><br>
+After getting all of that noise stuff squared away, I then looked into how parameter changes (
