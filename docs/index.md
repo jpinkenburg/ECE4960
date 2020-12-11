@@ -1932,5 +1932,8 @@ gyroSD = 1.44
 z = np.random.normal(z,tofSD)
 theta = np.random.normal(theta,gyroSD)
 ```
-To make things a little easier, I first tried to solve this noise problem with the deadband from the previous part of the lab turned off. After fiddling around with it for many moons, I finally got something that kept the pendulum stable in spite of the evil noise added by the "sensors" in the simulation. 
+To make things a little easier, I first tried to solve this noise problem with the deadband from the previous part of the lab turned off. After fiddling around with it for many moons, I finally got something that kept the pendulum stable in spite of the evil noise added by the "sensors" in the simulation!<br>
+(Q,R) = (0.1,1,1,10,1000)<br>
+<img src="randomNoise.png"><br>
+Again, unfortunately I was unable to take a screen recording because the software actually turns my VM into a brick, but the controller's success should be apparent from the graph above. For this controller to work I had to set R to be very large and the motion of the cart doesn't really track the input signal very much. However, since the objective is to create a stable system, it is able to successfully balance the pendulum without falling :) <br>
 {LOOK INTO NOISE, HOW CHANGING PARAMS AFFECTS THE INPUT}
