@@ -1932,6 +1932,7 @@ gyroSD = np.deg2rad(1.44)
 z = np.random.normal(z,tofSD)
 theta = np.random.normal(theta,gyroSD)
 ```
+For some reason, the variation in theta really threw off the controller (even when I turned down the standard deviation by quite a bit), so I did not include it in the following graphs. I think this may be due to the fact that the controller is very sensitive to inaccuracies in theta - even if theta is just a little bit off from its equilibrium position, the system will quickly become unstable. Since it is very difficult to measure theta in the real robot (could be done with an IMU taped to the pendulum?), it may just be best to keep theta as an unknown quanitity that is irrelevant to the system. <br>
 To make things a little easier, I first tried to solve this noise problem with the deadband from the previous part of the lab turned off. Although the random noise only adds a centimeter / degree of variation to the sensor readings, this made quite a big difference in the performance of the controller. When I tried using the controller I designed in the previous part of the lab, it failed miserably and crashed soon after starting up: <br>
 <img src="noiseFail.png"><br>
 However, after fiddling around with it for quite some time, I finally got something that kept the pendulum stable in spite of the evil noise added by the "sensors" in the simulation!<br>
