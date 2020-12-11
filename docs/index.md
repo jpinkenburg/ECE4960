@@ -1925,15 +1925,16 @@ I also tried to use a sine wave input to see how the deadband controller reacts.
 <img src="hf_sin.png"><br>
 <br>
 <Center> <b> Adding in Sensor + Parameter Noise </b> </Center>
-Although Kirstin said in lecture that getting the controller to work with sensor noise was no longer required for this lab, I still wanted to see if I could get a controller to work with semi-realistic noise added to the sensor readings (i.e., z and theta). To start, I first had to obtain some values to use for the sensor noise. Luckily I had some foresight in Labs 5 and 6 and managed to record the standard deviations of the noise in the IMU and TOF sensors. From my lab reports: accelerometer stdev = 0.0601, gyro sensor stdev = 1.44, TOF stdev = 0.015 (TOF in cm, accel in m, gyro in dps). To add noise to the system, I modeled it as a Gaussian distribution with the mean as the true value and the standard deviation; since the accelerometer standard dev was much higher than the TOF, I simply used the TOF noise for sensor readings, since the TOF sensor is much more precise than obtaining odometry/position from the accelerometer. To do this, I simply used the gaussian function provided by NumPy:<br>
+Although Kirstin said in lecture that getting the controller to work with sensor noise was no longer required for this lab, I still wanted to see if I could get a controller to work with semi-realistic noise added to the sensor readings (i.e., z and theta). To start, I first had to obtain some values to use for the sensor noise. Luckily I had some foresight in Labs 5 and 6 and managed to record the standard deviations of the noise in the IMU and TOF sensors. From my lab reports: accelerometer stdev = 0.0601, gyro sensor stdev = 1.44, TOF stdev = 0.015 (TOF in cm, accel in m, gyro in dps). For simplicitly, I assumed that the  To add noise to the system, I modeled it as a Gaussian distribution with the mean as the true value and the standard deviation; since the accelerometer standard dev was much higher than the TOF, I simply used the TOF noise for sensor readings, since the TOF sensor is much more precise than obtaining odometry/position from the accelerometer. To do this, I simply used the gaussian function provided by NumPy:<br>
 ```Python
 tofSD = 0.015
 gyroSD = 1.44
 z = np.random.normal(z,tofSD)
 theta = np.random.normal(theta,gyroSD)
 ```
-To make things a little easier, I first tried to solve this noise problem with the deadband from the previous part of the lab turned off. After fiddling around with it for many moons, I finally got something that kept the pendulum stable in spite of the evil noise added by the "sensors" in the simulation!<br>
+To make things a little easier, I first tried to solve this noise problem with the deadband from the previous part of the lab turned off. Although the random noise only adds a centimeter / degree of variation to the sensor readings, this made quite a big difference in the performance of the controller. When I tried using the controller I designed in the previous part of the lab, it failed miserably and crashed soon after starting up: <br>
+<img src="noiseFail.png"><br>
+However, after fiddling around with it for quite some time, I finally got something that kept the pendulum stable in spite of the evil noise added by the "sensors" in the simulation!<br>
 (Q,R) = (0.1,1,1,10,1000)<br>
 <img src="randomNoise.png"><br>
 Again, unfortunately I was unable to take a screen recording because the software actually turns my VM into a brick, but the controller's success should be apparent from the graph above. For this controller to work I had to set R to be very large and the motion of the cart doesn't really track the input signal very much. However, since the objective is to create a stable system, it is able to successfully balance the pendulum without falling :) <br>
-{LOOK INTO NOISE, HOW CHANGING PARAMS AFFECTS THE INPUT}
