@@ -1976,3 +1976,16 @@ Unsuprisingly, this lab started just like all of the others - I downloaded the b
 With all that nonsense cleared up, I was finally able to get started on the lab. To get a better feeling for how the system works, I simply executed the runSimulation.py file and observed the result. As seen in the video below, the controller is easily able to stabilize the system. The graphs also indicate that the Kalman filter is able to estimate the state variables quite well; the first plot of the true state values and the second one of the estimates produced by the Kalman filter are nearly identical! <br>
 <img src="initSim_true.png"><br>
 <img src="initSim_estimate.png"><br>
+Strangely enough, the system is not actually observable (meaning we cannot estimate any state x from a series of measurements y). This was determined by computing the observability matrix and calculating the rank of this matrix using the following code: <br>
+```Python
+obsMat = control.obsv(A,C)
+obsRank = np.linalg.matrix_rank(obsMat)
+```
+This code yielded an observability matrix with rank 3. Since this is less than the number of state variables (4), the system is <b>not</b> observable. The observability matrix is given below: <br>
+```Python
+[[  0.           0.           0.           1.        ]
+ [  0.          -1.35711179   8.61948673   0.        ]
+ [  0.           2.22852041  -0.84083789   8.61948673]
+ [  0.         -15.35707214  75.67629588  -0.84083789]]
+ ```
+Looking at this matrix, we can see that the first column is all zeros, so we can conclude that state variable x is unobservable.<b>{CHECK IF THIS IS RIGHT, HOW WOULD THIS EVEN HELP}</b>
