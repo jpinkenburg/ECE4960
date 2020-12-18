@@ -12,7 +12,11 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
  
 <li> I'm trying to learn how to cook and don't consider myself so bad at it, but my smoke detector begs to differ </li>
 
-<Center> <h1> Lab 1: The Artemis Board </h1> </Center>
++[Lab 1](#Lab-1)
++[Lab 2](#Lab-2)
++[Lab 3](#Lab-3)
+
+<Center> <h1> Lab 1: The Artemis Board </h1> </Center> <a name="Lab-1"></a>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 To be able to program the Artemis board, I first had to configure my Arduino IDE to install the required libraries. After installing everything, I checked that the programmer was functional by uploading the provided 'Blink It Up' program - as shown in the video below, the board exhibited the expected behavior (built in blue LED toggles every second).
@@ -1976,6 +1980,7 @@ Unsuprisingly, this lab started just like all of the others - I downloaded the b
 With all that nonsense cleared up, I was finally able to get started on the lab. To get a better feeling for how the system works, I simply executed the runSimulation.py file and observed the result. As seen in the video below, the controller is easily able to stabilize the system. The graphs also indicate that the Kalman filter is able to estimate the state variables quite well; the first plot of the true state values and the second one of the estimates produced by the Kalman filter are nearly identical! <br>
 <img src="initSim_true.png"><br>
 <img src="initSim_estimate.png"><br>
+<b>{INSERT VIDEO HERE}</b>
 Strangely enough, the system is not actually observable (meaning we cannot estimate any state x from a series of measurements y). This was determined by computing the observability matrix and calculating the rank of this matrix using the following code: <br>
 ```Python
 obsMat = control.obsv(A,C)
@@ -1988,4 +1993,5 @@ This code yielded an observability matrix with rank 3. Since this is less than t
  [  0.           2.22852041  -0.84083789   8.61948673]
  [  0.         -15.35707214  75.67629588  -0.84083789]]
  ```
-Looking at this matrix, we can see that the first column is all zeros, so we can conclude that state variable x is unobservable.<b>{CHECK IF THIS IS RIGHT, HOW WOULD THIS EVEN HELP}</b>
+Looking at this matrix, we can see that the first column is all zeros, so we can conclude that state variable x is unobservable.<b>{CHECK IF THIS IS RIGHT, HOW WOULD THIS EVEN HELP - is because column 0 of A has all 0's?}</b> <br>
+To see how this impacted the performance of the Kalman filter, I first tried messing around with the initial position estimates. To do this, I modified the state 
