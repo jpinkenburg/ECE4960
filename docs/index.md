@@ -17,7 +17,7 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
 + [Lab 3](#Lab-3)
 
 <Center> 
-	# Lab 1: The Artemis Board <a name="Lab-1"></a>
+	<h1>Lab 1: The Artemis Board <a name="Lab-1"></a></h1>
 </Center>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
