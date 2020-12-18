@@ -12,11 +12,11 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
  
 <li> I'm trying to learn how to cook and don't consider myself so bad at it, but my smoke detector begs to differ </li>
 
-+[Lab 1](#Lab-1)
-+[Lab 2](#Lab-2)
-+[Lab 3](#Lab-3)
++ [Lab 1](#Lab-1)
++ [Lab 2](#Lab-2)
++ [Lab 3](#Lab-3)
 
-<Center> <h1> Lab 1: The Artemis Board </h1> </Center> <a name="Lab-1"></a>
+<a name="Lab-1"></a><Center> <h1> Lab 1: The Artemis Board </h1> </Center>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 To be able to program the Artemis board, I first had to configure my Arduino IDE to install the required libraries. After installing everything, I checked that the programmer was functional by uploading the provided 'Blink It Up' program - as shown in the video below, the board exhibited the expected behavior (built in blue LED toggles every second).
