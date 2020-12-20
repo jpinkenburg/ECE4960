@@ -17,7 +17,7 @@ Hi! My name is Jade and I'm super excited to take this class! Here are some (hop
 + [Lab 3](#Lab-3)
 
 <Center> 
-	<h1>Lab 1: The Artemis Board <a name="Lab-1"></a></h1>
+	<h1>Lab 1 <a name="Lab-1"></a></h1>
 </Center>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
@@ -44,7 +44,7 @@ if(ui32LoudestFrequency >= 500){digitalWrite(LED_BUILTIN,HIGH);}
 
 <br> <br>
 
-<Center> <h1> Lab 2: Bluetooth Communication </Center></h1>
+<Center> <h1> Lab 2 </Center></h1>
 
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 I had a little trouble setting up the bluetooth on the provided ECE4960 Ubuntu VM, so I just opted to use my windows machine for the entirety of this lab. To enable bluetooth communication with the Artemis board, I installed the necessary python library (bleak) using pip. I also downloaded the provided distribution code (python scripts and Arduino IDE code) as a starting point for this lab.<br>
@@ -111,7 +111,7 @@ case PNG_IMG:{
 ```
 <br> <br>
 
-<h1> <Center> Lab 3: Characterizing the Robot </Center> </h1> <br>
+<h1> <Center> Lab 3 </Center> </h1> <br>
 
 <p style = "color: green; font-size: 18px;"> <b> 3a: Characterizing the Physical Robot </b> </p> </Center><br>
 <i> For this portion of the lab, I worked together with Katie Bradford and Emily Wang </i> <br>
@@ -149,7 +149,7 @@ When playing around with the simulator, I found out that clicking on the simulat
 <iframe width="766" height="394" src="https://www.youtube.com/embed/X6ZZOyAG-jA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <br><br>
 
-<h1> <Center> Lab 4: Open Loop Control </Center></h1>
+<h1> <Center> Lab 4 </Center></h1>
 <p style = "color: green; font-size: 18px;"> Part (a): Physical Robot Control </p>
 After assembling the robot, I played around with the code parameters to try and achieve open loop control over the robot. To start, I first modified the example MotorTest code to drive the correct motors and I had to flip some wires around to make each set of wheels turn in the same direction when the motor power was set as positive. To test the 'turn-on power' of the motors, I wrote a short program that incremented the motor speed and printed it to serial; the motors were turned off via serial commands as well as to not waste battery life. The speed that the motors started rotating was recorded and this was performed 10 times (in each trial, both motor speeds were incremented and their turn on power was noted). This was performed in two ways: in one set of trials, I kept the wheels of the robot off the ground and recorded the turn on power for each motor. In another set, the robot was placed on the ground and the power at which it started moving forwards; a speed for each motor could not be determined because one set of wheels rolling forward caused the wheels on the other side to start moving and the motors no longer had to overcome the higher force of static friction. Check out the code and data below! <br>
 ```C
@@ -282,7 +282,7 @@ while True:
 <iframe width="560" height="315" src="https://www.youtube.com/embed/3cZTaRoUcsA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <br><br>
 
-<Center><h1> Lab 5: Obstacle Avoidance </h1></Center>
+<Center><h1> Lab 5 </h1></Center>
 <p style = "color: green; font-size: 18px;"> Prelab </p>
 There are quite a few types of infrared distance sensors available for use in low cost robots these days, but there are two main types of infrared sensors: proximity sensors and time-of flight sensors (which are coincidentally the ones we use in this lab - who would've thought!)<br>
 1: Proximity Sensors - work by emitting an infrared beam that gets reflected off of nearby objects. When the reflected light arrives at the detector, the sensor uses the characteristics of the reflected light to reconstruct the position of the object. Proximity sensors are quite good at determining if an object is present within a given range, but does not give very accurate estimates of an object's position. Measurements are also more strongly affected by the environment (ambient light, color, etc.). <br>
@@ -399,7 +399,7 @@ def perform_obstacle_avoidance(robot):
 ```
 
 
-<Center> <h1> Lab 6: IMU, PID, and Odometry </h1> </Center>
+<Center> <h1> Lab 6 </h1> </Center>
 <Center><p style = "color: green; font-size: 18px;"> Lab 6a: IMU, PID, and Odometry with the Physical Robot </p> </Center>
 NOTE: For some reason, certain images do not appear on the website version of this lab report - check out the index.md file for the images if they are missing; they should all be in the Github repo. <br>
 <Center> <b> Setting up the IMU </b> </Center>
@@ -718,7 +718,7 @@ After playing around with the real robot, I then coded the same map in the VM si
 Because the simulator expects measurements in 20 degree intervals, we can't just feed the data into the plotter/simulator as I did with the map and the real robot. Looking at the data I collected with my robot, I noticed that each rotation generated 300+ datapoints, or just under 1 measurement for every degree of motion. To pare down the measurements, I could take the average of a few locations clustered about the angle that I want to measure at, and I could weight them by their angular distance to the desired heading (i.e. the closest value would get the highest weight in the average, could also use an exponentially decreasing weight). Because angles might change rapidly, we can also instate a cutoff distance value at which no other angles would be considered (if the measurement closest to the desired heading differs drastically from a measurment that is a few degrees off, we can ignore the second measurement in the calculation in case there is a steep gradient). Averaging generally helps decrease noise/error in sensor measurements, so it seems like it would be an advantageous tactic to use in this case where the map is quite sensitive to sensor errors. 
 <br> <br>
 
-<Center> <h1> Lab 8: Localization I: Simulation </h1> </Center>
+<Center> <h1> Lab 8 </h1> </Center>
 To start this simulation lab, I followed the usual procedure and downloaded the lab code framework from the class github page. After successfully running the setup script and opening the Python code in Jupyter Lab, I also had to start the simulator and plotter using the lab 8 manager in order to see the results of my implementation of the Bayes filter. I also familiarized myself with the provided helper functions during Thursday's in-class activity. Once I ran the provided setup code and saw that the robot moved in the simulator and its position was displayed in the plotter, I then began translating my pseudocode in Lab 7 into a runnable implementation of the Bayes filter. My final code (with explanations) is below <br>
 <br>
 To start, I save all my object functions/variables in local variables so they don't have to be repeatedly accessed using dot notation inside of the massive loops; this significantly speeds up the code. <br>
@@ -1299,7 +1299,7 @@ Other than the rather long computational time of the Bayes filter algorithm, the
 <br>
 <br>
 
-<Center><h1> Lab 9: Localization with the Real Robot </h1> </Center>
+<Center><h1> Lab 9 </h1> </Center>
 <p style="color: green;font-size:18px"> <b> Setup </b> </p>
 To start, I first had to clean up my room and do the laundry so I could set up the map for the physical robot from lab 7 once again. Following Vivek's suggestions, I removed all of the smaller circular objects in the map, since some of them were too small to fit in a full 20cm x 20cm grid cell and because circular objects are quite hard to detect accurately with the TOF sensor. After recreating the modified map using the strips of tape I left on my floor, I then went into my VM and downloaded the provided lab 9 distribution code. After taking a look at the Jupyter notebook and verifying that the simulator and plotter features of the lab manger were functional, I then began the task of getting the Bluetooth to pass through to the VM. Although this should have been a simple 5 minute procedure, getting the VM to pick up on the Bluetooth dongle quickly became a whole ordeal since VirtualBox somehow refused to detect any usb devices connected to my laptop. After several hours of troubleshooting, I (according to Vivek's advice) copied my VM from VirtualBox and downloaded VMWare to host the Ubuntu VM instead. After fiddling around with it a bit, I was finally able to get the VM to detect the Bluetooth dongle and send commands to the robot, but I still had persistent issues with connecting to the robot and sending data reliably (even when sending the same data structure several times for redundancy). <br>
 Once I figured out the whole bluetooth issue, I then started playing around with the provided code in the Jupyter notebook. On the first pass through the code (simply running every box), I quickly ran into an error after entering my map coordinates from Lab 7b into the plotter: <br>
@@ -1513,7 +1513,7 @@ Based on the results above, it seems like the biggest source of error in my pred
 <br>
 
 
-<h1> Lab 10: Path Planning and Execution </h1>
+<h1> Lab 10 </h1>
 <p style="color: green;font-size:18px"> Map Setup </p>
 The first step in doing this lab was figuring out where to start. Unlike the past labs, where we were given some base framework and some steps to follow, this one was much more open-ended and figuring out how to solve the problem most efficiently given the system and time constraints was more difficult than I initially anticipated. <br>
 <br>
@@ -1787,7 +1787,7 @@ If I had more time, I would try and implement some local path planning algorithm
 Although all of these ideas sound pretty cool, I simply did not have time to play around with them because I had to set everything up at home, which took a fair amount of time. The bluetooth module was, as always, another pain point of this lab that took away time from working on the lab itself. And of course things had to break as well, so I found myself soldering wires onto the board again (this time for the battery) to keep everything semi-functional.
 <br>
 <br>
-<Center><h1> Lab 11b: Inverted Pendulum LQR Control Design in Simulation </h1></Center>
+<Center><h1> Lab 11b </h1></Center>
 I really would have liked to try lab 11a instead, but the last lab really took a toll on my robot - the LiPo battery wires are in disrepair, many qwiic connectors are barely functioning, and my bluetooth dongle may be dysfunctional. Could be a cool winter break project though :) <br>
 Anyway, to start this lab, I followed the same routine as all the other labs: downloaded the base code, opened my favorite code editor (emacs, of course, but VSCode is starting to grow on me), and tried to make sense of what I was given. Because the VM is pretty slow on my laptop and makes any other program essentially unusable, I tried setting up the code on my host OS, but there was some strange error thrown when matplotlib was doing its thing - even after uninstalling and reinstalling, it didn't work so I switched back to the VM. In the VM, I had to download some extra packages (namely scipy) using pip for the code to run properly. After verifying that the code runs without throwing some obscene errors, I then got to work: <br>
 The first step in setting up my LQR controller in simulation was to change the existing parameters so they accurately modeled the physical robot; without a good model, the results of the simulation aren't as useful because they will not generalize properly to the real robot. Unfortunately, I don't own a scale so I was unable to directly measure the mass of my robot, but I remembered that some groups were able to in Lab 3 and estimated the cart mass to be 531 grams with the battery by taking an average from <a href="https://docs.google.com/spreadsheets/u/2/d/1T9-D6gmtZIklgzZLps0YMcw4vuMyBLfXMFlo3ppHo68/edit?pli=1#gid=0">this</a> spreadsheet from one of the earlier lectures. To estimate the value of friction, I measured the stopping distance of the robot driving at full speed (known maximum velocity) and estimated the damping coefficient to be about 0.9. As per the lab document, I kept the pendulum mass and length unchanged, and unless the Earth has expanded or something since the last time I checked, acceleration due to gravity is still a constant -9.81 m/s^2 (although <a href="https://www.wolframalpha.com/widgets/view.jsp?id=e856809e0d522d3153e2e7e8ec263bf2">according to Wolfram Alpha</a> it's closer to -9.80 in Ithaca, but who's taking score?). <br>
@@ -1974,7 +1974,7 @@ The last parameter to analyze was the length of the pendulum - I found that the 
 In addition to the parameters described above, sensor noise, and motor deadband, other facts that may cause the model to fail include imprecision in steering control - even if the motor power is within the deadband, there is probably some uncertainty in control and we cannot apply a force to arbitrary precision. Motor powers are also discrete, so we really only have 256 values to choose from in each direction (although we might be able to oscillate between two values to achieve a power in between). In addition, the sensor data might not be updated as often as we would like it to - especially for the TOF sensor, which needs time for ranging in addition to an inter-measurement period. While we could use the IMU readings in between rangings or decrease the ranging time, this would increase the noise in sensor measurements; alternatively, we can try interpolating between measurements if the time between readings is short enough, but this might not bode well if rapid changes are needed to keep the system stable. In addition, this model does not consider potential slippiage of the wheels, processing time on the Artemis board / other temporal delays in control application, and sloping floors (I know for a fact that the floors in my house are definitely not level!), all of which could cause the implemented K-gain to fail.
 <br>
 <br>
-<h1> <Center> Lab 12: Inverted Pendulum LQG </Center></h1>
+<h1> <Center> Lab 12b </Center></h1>
 <Center> <b> Setup </b> </Center>
 Unsuprisingly, this lab started just like all of the others - I downloaded the base code from the lab handout, unzipped it, and perused through the provided files. However, trying to run the code as provided was not so simple - running the code for the first time returned some funky errors in the theta coordinate. After closer inspection and after checking campuswire, I noticed that the theta variable was a Python list rather than a number or numpy array as was expected by the code. As per Greg and Vivek’s suggestions, I changed the np.sin(theta) and np.cos(theta) to np.sin(theta[0]) and np.cos(theta[0]) and the simulation worked. I was also sick of working in the VM because it was so slow on my laptop, so I decided to investigate why the plots were throwing errors when I ran the code on my Windows machine. Eventually I found that the problem was in the matplotlib calls with the plotDataZ function - since the simulation calls plot.show(), it causes some sort of drawing error (even though I uninstalled and reinstalled the package). To fix this, I got rid of the plt.show() command and put it after the calls to dataPlot.Plot(). <br>
 <br>
