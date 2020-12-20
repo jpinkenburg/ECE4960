@@ -634,7 +634,7 @@ Unfortunately, the low speed one was a bit skew with relation to the ground trut
 It would be interesting to see how odometry may be improved by averaging over measurements and/or taking measurements much more quickly.
 <br><br>
 
-<Center><h1> Lab 7: Mapping </h1></Center>
+<Center><h2> Lab 7</h2></Center>
 <Center><p style = "color:green;font-size:18px;"> Part (a): Grid Localization with the Bayes Filter </p></Center>
 To start with this portion of the lab, I first performed the usual steps of downloading the base code and running the setup script on the VM. Upon opening up the Jupyter notebook, I ran the provided code with the plotter tool open and got to work on the pseudocode for the localization functions using the odometry model. <br> When running the provided trajectory code, I saw that the robot was able to successfully navigate around one of the obstacles, albeit rather slowly. The robot's odometry readings were also quite far off from the robot's ground truth location - maybe a probabilistic model can fix this!<br>
 <img src="plotter.png"><br>
