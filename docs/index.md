@@ -1994,7 +1994,7 @@ This code yielded an observability matrix with rank 3. Since this is less than t
  [  0.           2.22852041  -0.84083789   8.61948673]
  [  0.         -15.35707214  75.67629588  -0.84083789]]
  ```
-Looking at this matrix, we can see that the first column is all zeros, so I suspected that the Z state variable was unobservable.</b> <br>
+Looking at this matrix, we can see that the first column is all zeros, so I suspected that the Z state variable was unobservable. <br>
 To further confirm my suspicions and see how this impacted the performance of the Kalman filter, I first tried messing around with the initial position estimates. To do this, I noticed that the mu variable contained the initial state values and tried adding 0.5 to each state variable (this ends up being pretty significant for theta and theta dot, but the system was still able to stabilize!). As seen in the plot below, the controller with Kalman Filtering is still able to keep the system stable. Since all of the estimated values of the state variables (plotted in blue for the last 3 graphs) except Z eventually converge to their true values (plotted in orange for the bottom 3), thus suggesting that Z is the only unobservable state. <br>
 <img src='init_addhalf.png'><br>
 To further confirm that Z is the sole unobservable state, I plotted the uncertainty for each state variable over time. To do this, I simply created a state_uncertainty variable that used the sigma matrix returned by the Kalman filter to keep track of the uncertainty. Since sigma is a covariance matrix, I obtained the variances of each state variable from the diagonal of this matrix and modified the plotDataZ code to plot the standard deviations (square root of variance): <br>
@@ -2012,7 +2012,7 @@ def plot_uncertainty(self,t,vars):
 ```
 As seen in the uncertainty plots below, all of the standard deviations of the state variables except for Z eventually converge to a steady value and do not change. Unlike the other variables, the uncertainty in Z continues to increase over time and does not settle down at a specific value because the Z estimate is not being updated by any sensor measurements, so the uncertainty continues to compound over time. The scale of the plot seems a bit wonky, but this at least provides more evidence to show that Z is the unobservable state.<br>
 <img src='uncertainty.png'><br><br>
-<b><p style="color: green;"> Adding LQR Control:</p></b><br>
+<p style="color: green;"> Adding LQR Control:</p><br>
 As suggested in the lab instructions, I then changed the default controller to an LQR controller rather than just placing the poles 'manually.' To do this, I just copied over my code from Lab 11b that successfully implemented the LQR controller. To start with LQR control, I just used the values from the previous lab that worked well for stabilizing the system (albeit this one was semi-optimized for a system without noise, so we'll have to see how it performs when adding process noise). After settling on these values, implementing LQR control was easy: <br>
 ```Python
 Q = np.matrix([
