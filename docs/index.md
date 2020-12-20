@@ -1980,7 +1980,8 @@ Unsuprisingly, this lab started just like all of the others - I downloaded the b
 <br>
 With all that nonsense cleared up, I was finally able to get started on the lab. To get a better feeling for how the system works, I simply ran the runSimulation.py file and observed the result. As seen in the video below, the controller is easily able to stabilize the system. The graphs also indicate that the Kalman filter is able to estimate the state variables quite well; there appears to be no (or at least a negligible) difference between the plots, as they overlap almost entirely. For the last 3 states, blue is the estimated state value and orange is the true state value. We can only see one line because the two plots are overlaid on one another and they are basically identical: <br>
 <img src="initSim_correct.png"><br>
-<b>{INSERT VIDEO HERE}</b>
+<iframe width="700" height="394" src="https://www.youtube.com/embed/hxIxwyDWcr8?start=18" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>
+After browsing through the code, I noticed that the Kalman filter actually used different A and B matrices than the previous lab. This is probably because the Kalman filter we use operates in discrete time, while the LQR controller from the last lab used continuous time. After talking with Sadie and looking up the scipy.linalg.expm function, it also seems that this may introduce some realistic time delay into the system to make it more similar to what we would see on the real robot. It also appears that theta dot is the only state being directly measured (this would be done with the gyro sensor in real life), and an estimation is provided for each state as well. This was determined by looking at the C matrix, which only had nonzero values in the last entry, which corresponds to theta dot.<br>
 Strangely enough, the system is not actually observable (meaning we cannot estimate any state x from a series of measurements y). This was determined by computing the observability matrix and calculating the rank of this matrix using the following code: <br>
 ```Python
 obsMat = control.obsv(A,C)
@@ -1993,8 +1994,8 @@ This code yielded an observability matrix with rank 3. Since this is less than t
  [  0.           2.22852041  -0.84083789   8.61948673]
  [  0.         -15.35707214  75.67629588  -0.84083789]]
  ```
-Looking at this matrix, we can see that the first column is all zeros, so we can conclude that state variable x is unobservable.<b>{CHECK IF THIS IS RIGHT, HOW WOULD THIS EVEN HELP - is because column 0 of A has all 0's?}</b> <br>
-To see how this impacted the performance of the Kalman filter, I first tried messing around with the initial position estimates. To do this, I noticed that the mu variable contained the initial state values and tried adding 0.5 to each state variable (this ends up being pretty significant for theta and theta dot, but the system was still able to stabilize!). As seen in the plot below, the controller with Kalman Filtering is still able to keep the system stable. Since all of the estimated values of the state variables (plotted in blue for the last 3 graphs) except Z eventually converge to their true values (plotted in orange for the bottom 3), thus suggesting that Z is the only unobservable state. <br>
+Looking at this matrix, we can see that the first column is all zeros, so I suspected that the Z state variable was unobservable.</b> <br>
+To further confirm my suspicions and see how this impacted the performance of the Kalman filter, I first tried messing around with the initial position estimates. To do this, I noticed that the mu variable contained the initial state values and tried adding 0.5 to each state variable (this ends up being pretty significant for theta and theta dot, but the system was still able to stabilize!). As seen in the plot below, the controller with Kalman Filtering is still able to keep the system stable. Since all of the estimated values of the state variables (plotted in blue for the last 3 graphs) except Z eventually converge to their true values (plotted in orange for the bottom 3), thus suggesting that Z is the only unobservable state. <br>
 <img src='init_addhalf.png'><br>
 To further confirm that Z is the sole unobservable state, I plotted the uncertainty for each state variable over time. To do this, I simply created a state_uncertainty variable that used the sigma matrix returned by the Kalman filter to keep track of the uncertainty. Since sigma is a covariance matrix, I obtained the variances of each state variable from the diagonal of this matrix and modified the plotDataZ code to plot the standard deviations (square root of variance): <br>
 ```Python
@@ -2009,7 +2010,7 @@ def plot_uncertainty(self,t,vars):
     l3, = self.ax[2].plot(t,self.std_theta,label='Theta-SD')
     l4, = self.ax[3].plot(t,self.std_thetadot,label='Thetadot-SD')
 ```
-As seen in the uncertainty plots below, all of the standard deviations of the state variables except for Z eventually converge to a steady value and do not change. Unlike the other variables, the uncertainty in Z continues to increase over time and does not settle down at a specific value because the Z estimate is not being updated by any sensor measurements, so the uncertainty continues to compound over time <b>{IS THIS EVEN RIGHT}</b> <br>
+As seen in the uncertainty plots below, all of the standard deviations of the state variables except for Z eventually converge to a steady value and do not change. Unlike the other variables, the uncertainty in Z continues to increase over time and does not settle down at a specific value because the Z estimate is not being updated by any sensor measurements, so the uncertainty continues to compound over time. The scale of the plot seems a bit wonky, but this at least provides more evidence to show that Z is the unobservable state.<br>
 <img src='uncertainty.png'><br><br>
 <b><p style='color: green;'> Adding LQR Control:</p></b><br>
 As suggested in the lab instructions, I then changed the default controller to an LQR controller rather than just placing the poles 'manually.' To do this, I just copied over my code from Lab 11b that successfully implemented the LQR controller. To start with LQR control, I just used the values from the previous lab that worked well for stabilizing the system (albeit this one was semi-optimized for a system without noise, so we'll have to see how it performs when adding process noise). After settling on these values, implementing LQR control was easy: <br>
@@ -2041,7 +2042,7 @@ With high frequency input (0.5 Hz), it was interesting to see that the motion of
 Just for fun, I increased the ampltude even more and the pendulum's behavior was pretty crazy: <br>
 <img src='init_biggamp.png'><br>
 Clearly, the controller is quite robust to the input signals - we'll see if it still does this when adding noise!<br>
-<p style="font-size: medium;color: aquamarine;"> Initial State Uncertainty </p>
+<p style="font-size: medium;color: deepskyblue;"> Initial State Uncertainty </p>
 Although I tried adding some error into the initial state estimation when determining which states were unobservable. To see how the controller is affected by variations in the intial estimates of each state, I only added error to one variable at a time, while the other 3 would have no error attached to them. <br>
 Adding uncertainty to Z did not have much effect; the bottom graph shows a deviation of 1m from the actual value and the controller is not significantly affected; it is still able to keep the system stable and all of the estimated state variables except for Z (for reasons discussed above) do not deviate from the true values. <br>
 <img src='z_add1.png'><br>
@@ -2064,9 +2065,7 @@ For realisitc uncertainty, I decided to use the sensor data from labs 5 and 6 to
 Increasing this uncertainty to 5-sigma (probability 1 in 3.5 million, turning into particle physicist) also did not have a significant effect on the system. Clearly the implemented system is very robust to mistakes in initial position. <br>
 <img src='5sigma.png'><br>
 
-<b> MAYBE TRY DIFFERENT REFERENCES AS WELL</b>
-
-<p style="font-size: medium;color: aquamarine;"> Adding Saturation & Deadband </p>
+<p style="font-size: medium;color: orangered;"> Adding Saturation & Deadband </p>
 After showing that the LQR controller with Kalman filtering is able to handle uncertainties in initial position with ease, I then wanted to see if it could handle deadband and saturation as in lab 11. While implementing this saturation and deadband, I also kept the initial uncertainty at 3-sigma as described above (alteritavely, we could also set the error to be a gaussian random variable with mean 0 and standard deviations as discussed above, but I wanted to keep it at worst case and make it reproducible). To add deadband, I just copied over my code from lab 11 (with some minor edits to make it syntactically correct in the new framework). As a reminder, the maxForce was obtained by obtaining the maximum acceleration of the robot as determined by the class in lab 3 and I just used Newton's second law to comput the maximum force. The minimum force was suggested by Sadie and may be slightly higher than the actual minimum force that can be applied (which is good). The following code was added just after u was computed and before the kalman filter was applied:<br>
 ```Python
 maxForce = (P.m2+P.m1)*3.8 #F=ma
@@ -2096,7 +2095,7 @@ I also restored the deadband to the realistic values from earlier and saw that t
 <img src='real_sawtooth.png'><br>
 Clearly the Kalman filter makes the controller <i>much</i> more robust to deadband than the LQR controller by itself (it was a struggle to even get realistic deadband to work in the previous lab) and the state estimations are still surprisingly accurate! Wonder if that holds up with proces and measurement noise... <br>
 
-<p style="font-size: medium;color: aquamarine;"> Introducing Process & Measurement Noise </p>
+<p style="font-size: medium;color: crimson;"> Introducing Process & Measurement Noise </p>
 After confirming that the Kalman filter can handle deadband, I then added process noise to the system by uncommenting the line<br>
 ```Python
 dydt = [ydot0 + np.random.randn()*0.01, ydot1 + np.random.randn()*0.01, ydot2 + np.random.randn()*0.01, ydot3 + np.random.randn()*0.01]
@@ -2112,23 +2111,27 @@ y_kf = P.C.dot(old_state) + np.random.normal(0,0.01)
 <img src='measure_noise_01.png'><br>
 As seen in the graph above, the measurement noise has a much more drastic effect on the system than the process noise does. While the and zdot estimates are relatively unaffected, the Kalman filter estimates of the theta and theta dot states now have a lot more uncertainty than previously. The theta estimate (in blue) fluctuates pretty wildly, but is still centered on the true value, so with some averaging/filtering techniques this may not be a huge issue. The controller with the Kalman filter is still able to stabilize the pendulum quite easily, which is a significant improvement over the last lab, where getting the noise to work was quite troublesome. To see how tolerant the system was to noisy sensor measurements, I increased the uncertainty by a factor of 10 and saw that it still worked!<br>
 <img src='measure_noise_10x.png'><br>
-<b>{CHECK IF THIS PART IS RIGHT}</b><br>
+I then adjusted the noise to make better reflect the measurement noise that we can expect from the real system. From lab 5 (and discussed above), I found that the gyro sensor noise had a standard deviation of about 1.44 degrees. I then changed the standard deviation in the added noise to this value and saw that the controller was still able to stabilize the system and that the estimates (except Z, as in basically all the other cases) all converged to the true values quickly:
+<img src='real_noise.png'><br>
+I also tried the realistic noise with sine sawtooth inputs; as seen in the graphs below, the controller is still able to stabilize the system with ease and the estimates are still quite close to the actual values:<br>
+<img src='real_noise_sawtooth.png'><br>
+<img src='real_noise_sin.png'><br>
 In the kalmanFilter.py file, I noticed that there were some parameters that should contain the expected noise variance for each sensor modality. To make this realisitic, I set this to be the variances (standard dev squared) of the sensors determined in Labs 5 and 6 and mentioned above. This was done by changing the sigma_u variable:<br>
 ```Python
 sigma_u = np.diag([0.06**2,0.06**2,(1.44*np.pi/180)**2,(1.44*np.pi/180)**2]
 ```
-This change appeared to decrease the uncertainty in the estimated state values, but made the true state values less smooth (motion appeared more jittery). The theta dot state estimate also appears to track the true value better than in the graphs above. The plot below shows has a measurement noise of 10x the process noise and a sigma_u as defined above. <br>
+This change appeared to decrease the uncertainty in the estimated state values, but made the true state values less smooth (motion appeared more jittery). The theta dot state estimate also appears to track the true value well (which makes sense, as that is the state variable that we are measuring). The plot below shows has a measurement noise with standard deviation 0.1 and a sigma_u as defined above. <br>
 <img src='sigma_u_10x.png'><br>
-I then reduced the measurement noise to be the same random variable as the process noise (0.01 standard dev rather than 0.1) and got the following result:<br>
+I then reduced the measurement noise to be the same random variable as the process noise just to see what happens (0.01 standard dev) and got the following result:<br>
 <img src='sigma_u.png'><br>
-This actually worked surprisingly well! The estimated state noise decreased a fair amount from the first image and the true state values are not much less smooth either. Increasing the values in sigma_u by a factor of 4 made the estimation deviate even less from the true values, but this may no longer be realistic.<br>
+This actually worked surprisingly well! The estimated state noise decreased a fair amount from the first image and the true state values are not much less smooth either. Increasing the values in sigma_u by a factor of 4 made the estimation deviate even less from the true values, but this may no longer be realistic:<br>
 <img src='sigma_u_4x.png'><br>
 As shown in all the plots above, the controller with the Kalman filter is clearly much more adept at handling noise than the LQR controller on its own (which was almost impossible to get working with added noise). It is able to handle a realistic and even an excessive amount of noise while also accounting for deadband without allowing the system to go unstable. After tuning the parameters in sigma_u, the estimated state values didn't deviate much from the true values either! <br>
-<p style="font-size: medium;color: aquamarine;"> Parameter Fluctuations </p>
-As in the previous lab, I wanted to see how fluctuations in the parameters of the A and B matrices used in the model would affect the performance of the Kalman Filter. To see how each parameter affected the estimation of states, I disabled the noise for this portion of the lab since it might be hard to judge how much the parameter changes affect the deviation from the true value. <br>
+<p style="font-size: medium;color: gold;"> Parameter Fluctuations </p>
+As in the previous lab, I wanted to see how fluctuations in the parameters of the A and B matrices used in the model would affect the performance of the Kalman Filter. To see how each parameter affected the estimation of states, I initially disabled the noise (then eventually put it back) for this portion of the lab since it might be hard to judge how much the parameter changes affect the deviation from the true value. <br>
 As with the last lab, I first started playing around with the parameters that would be hardest to model. Since the other parameters are easy to measure with a fair degree of precision, I first experimented with the damping coefficient b. To start, I boosted it all the way up to 5 and observed the result: <br>
 <img src='friction_5.png'><br>
-As seen in the graph above, the Kalman filter was still able to reutrn estimates that were very close to the actual readings after the initial start. When I increased the damping coefficient to 7, the controller was no longer able to keep the system stable. To see if I could observe any effect, I added noise (process noise and sensor noise have same SD of 0.01) back into the system and got the following result: <br>
+As seen in the graph above, the Kalman filter was still able to reutrn estimates that were very close to the actual readings after the initial start. When I increased the damping coefficient to 7, the controller was no longer able to keep the system stable. To see if I could observe any effect, I added noise (process and measurement) back into the system and got the following result: <br>
 <img src='friction_5_noise.png'><br>
 Here we can see that the Kalman filter is able to track the noise quite well compared to the lower damping coefficient used in the previous part. To see if that generalizes to even smaller damping coefficients, I reduced the damping coefficient to 0.2 - the results are displayed below (top without noise, bottom with noise):<br>
 <img src='friction_2.png'><br>
@@ -2161,7 +2164,7 @@ Just for fun, I also decided to play around with gravity and tried values of 20 
 A larger value of g appears to make the Kalman filter estimates converge more quickly to the true values. While this isn't really a parameter we can change - but if there's some sort of antigravity machine somewhere please let me know :) - it may provide us with some valuable insights into the inner workings of the system.<br>
 In general, it seems like we could change each parameter by a fair amount (by at least a factor of 2 in either direction) before the system either goes unstable or the Kalman filter returns somthing way off (although this depends on our definitions of "way off," but the system remained stable for all of the values listed above).<br>
 
-<p style="font-size: medium;color: aquamarine;"> Changing the Update Time </p>
+<p style="font-size: medium;color: purple;"> Changing the Update Time </p>
 For this part of the lab, I reset the parameter values that I was fiddling around with for the previous section and looked into how large I could make the update time before the controller was unable to stablize the system. To start, I tried increasing the update time by a factor of 10 to see how the system would react: <br>
 <img src='t_01.png'><br>
 While the initial motion is a bit wonky and the estimated state returned by the Kalman filter is slightly off from the true value in the beginning, the controller is still able to stabilize the pendulum. However, when I increased the update time by a factor of 10 again (to 0.1 seconds), the system went unstable: <br>
@@ -2178,4 +2181,83 @@ As seen in the plots, the controller with the Kalman filter is quite adept to fa
 <p style='color: red;font-size: medium;'>So, can this be done on the real robot?</p>
 I'm going to go with a solid 'possibly?' - this lab really boosted my confidence in the robot's potential ability to keep an inverted pendulum stable; I really had no faith in the LQR controller alone after lab 11b, but the addition of a Kalman filter showed really promising results. While the simulation suggests that it might be possible to implement a controller that can successfully do this, there are still many other potential sources of error that have not been considered in simulation. For example, we discussed wheel slippiage at the beginning of the course, and that may affect our ability to control the robot. In addition, we are limited in the precision of our inputs - there are only so many values of motor power that we have to work with (I believe that we were limited to integers between 0-255), and this discretization may impact the ability of the controller to stabilize the system. The fact that Kirstin couldn't get this to work also makes me a bit skeptical, but I think that it could be done with enough time, energy, patience, and sheer luck
 <br>
-<p style='color: red;font-size: medium;'>Changing Measurements</p>
+<p style='color: red;font-size: medium;'>Extra Credit: Changing Measurements</p>
+Even though the controller with the Kalman filter is clealy very robust and is able to both stabilize the system and produce state estimates that are very similar to the true state values under a wide variety of conditions, I wanted to see if adding other sensor measurements would improve its performance (especially with long update times). To do this, I first added in Z measurements that would be provided by the TOF sensor. This was done by adding another row to the C matrix:<br>
+```Python
+C = np.matrix([[1.0,0.0,0.0,0.0],[0.0, 0.0, 0.0, 1.0]])
+```
+I then added realistic noise to the Z measurements by looking at my Lab 5 report and setting the standard deviaton of the noise to be around 1.75 cm for the Z variable and the same 1.44 degrees for the theta dot measurements:<br>
+```Python 
+y_kf = P.C.dot(old_state) + np.array([np.random.normal(0,0.06),np.random.normal(0,1.44*np.pi/180)]).reshape(2,1)
+```
+When running the simulation, the first thing I noticed was that the system became observable! The rank of the observability matrix is now equal to the number of state variables (4) and the estimated Z value now tracks the true value; although the controller was still able to stabilize the system without an accurate Z estimate before, this is no doubt a piece of useful information and we'll see if (and how much) it improves the performance of the controller. Just to start off, I set the update time to 1 ms (T_update = 0.001, the original value) just to see how the added Z measurements affect the initial controller. Realistic deadband is still implemented here:<br>
+<img src='z_measure.png'><br>
+As seen in the graph above, the state estimates seem appear to deviate less from the true values! However, the uncertainty / fluctuations in z and zdot are much larger than before; it remains to be seen how much this will affect the measurements. I then decreased the update frequency for both measurements (z and theta dot) to 100 Hz (T_update = 0.01) to see how this affected the controller:<br>
+<img src='z_measure_01.png'><br>
+Here we can see that the fluctuations in the estimated Z actually decreased! However, graphs of each of the state variables all appear to be less smooth than in the previous, but the controller is still able to stabilize the system so this may not be a huge problem, especially since the variations are not that large.<br>
+Since the last controller failed when I decreased the update frequency to 10 Hz, I wanted to see what would happen if I changed the update time to 0.1 s for both measurements:<br>
+<img src='z_fail.png'><br>
+Unfortunately the system still went unstable, but the estimated z and zdot values now deviated significantly less from the actual values even though the motion of the cart was pretty wild - so I'll still count that one as a win :)<br>
+As suggested by the lab document, I then nade the system more realistic by keeping the Z measurement update frequency at 10 Hz and bringing the theta dot update frequency back up to 100 Hz, since these values closely resemble the actual update frequencies of the real sensors. To update the sensors at different rates, I had to modify both the loop in runSimulation.py and the kalman filter code. When theta dot was updated and Z was not, I had to only use the part of the C matrix that included theta dot (i.e., the second row); I only called the Kalman filter function that updated both measurements every 0.01 seconds<br>
+<i>Loop / if statement changes</i><br>
+```Python
+#t_update set to 0.01
+if (t % P.T_update) < dt:
+    u=-Kr.dot(mu-des_state) #LQR control
+
+    #Deadband
+    if abs(u) > maxForce:
+        u = np.sign(u)*maxForce
+    elif abs(u) < minForce:
+        u = 0
+    
+    #update sensor measurements
+    if (t % 0.1) < dt:
+        #Update both Z and theta dot
+        y_kf = P.C.dot(old_state) + np.array([np.random.normal(0,0.06),np.random.normal(0,1.44*np.pi/180)]).reshape(2,1)
+        mu,sigma = kalmanFilter(mu,sigma,u,y_kf,P.C) #Pass in relevant C matrix 
+    else:
+        #only update theta dot
+        y_kf = P.C[1,:].dot(old_state) + np.random.normal(0,1.44*np.pi/180)
+        mu,sigma = kalmanFilter(mu,sigma,u,y_kf,P.C[1,:]) #Pass in relevant C matrix 
+```
+<i>Kalman Filter Modifications (made C matrix an argument)</i>
+```Python
+def kalmanFilter(mu, sigma, u, y,C):
+    
+    mu_p = Ad.dot(mu) + Bd.dot(u) 
+    sigma_p = Ad.dot(sigma.dot(Ad.transpose())) + sigma_u
+    
+    y_m = y-C.dot(mu_p)
+    sigma_m = C.dot(sigma_p.dot(C.transpose())) + sigma_n
+    kkf_gain = sigma_p.dot(C.transpose().dot(np.linalg.inv(sigma_m)))
+
+    mu = mu_p + kkf_gain.dot(y_m)    
+    sigma=(np.eye(4)-kkf_gain.dot(C)).dot(sigma_p)
+
+    return mu,sigma
+```
+Running this code yielded the following result:<br>
+<img src='z_update.png'><br>
+As seen in the plot, the Kalman filter is really good at estimating the positions of all the states now! Although the theta estimates still fluctuate, they are still centered about the true measurements. While there is still a fair amount of noise in the Z estimate, it is a significant improvement from the total deviations from true value that we saw in the previous section of the lab when Z was unobservable without the added TOF measurements.The zdot estimates are also nearly identical to the true values! I then tried different inputs to see how the controller reacted: <br>
+<img src='z_sawtooth.png'><br>
+<img src='z_sin.png'><br>
+In both of the graphs above, the controller is still able to stabilize the system and the state estimates returned by the Kalman filter still do not deviate significantly from the true values! To see if the added Z measurements make the controller more robust to noise, I tried multiplying the noise by a factor of 5 and saw that the controller still worked! (although I'm not sure I would trust a controller this jittery in real life...)<br>
+<img src='z_5xnoise.png'><br>
+This new controller seems to be as robust as the previous one (although there are some limitations in multiplying the noise compared to the other sensor), and the Z state is now observable, so I would say that this helps us quite a bit :)<br>
+Just for fun, I tried seeing what would happen if measured zdot instead of z: <br>
+<img src='zdot_measure.png'><br>
+As seen in the graph above, this caused the Z estimate to take longer to converge to the true value; the controller was still successful in stabilizing the pendulum and the other state estimates did not deviate so much from the true values either.<br>
+I also tried measuring Z and theta instead of Z and theta dot: <br>
+<img src='ztheta.png'><br>
+Here, the theta estimates seem to be a bit more accurate and the theta dot less so, but the trajectory of the cart deviates from the reference much more than when we measured z and theta dot. <br>
+<br>
+For some reason my computer struggled to screen record while the code was running (was super slow), but I managed to get one good video of the system with both Z and theta dot measurements:<br>
+<iframe width="700" height="394" src="https://www.youtube.com/embed/hgU1bn0vur4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>
+
+Both with and without the additional sensor measurements, the controller with the Kalman filter did a surprisingly good job at handling a wide variety of situations and it would be cool to try it on a real robot at some point - maybe next semester ;)<br>
+<br>
+<br>
+
+To Prof. Kirstin and the TA's: thanks for all your hard work this semester! Wishing you all Happy Holidays + the end of 2020! <br>
+<img src='we_done.png'><br>
