@@ -634,7 +634,7 @@ Unfortunately, the low speed one was a bit skew with relation to the ground trut
 It would be interesting to see how odometry may be improved by averaging over measurements and/or taking measurements much more quickly.
 <br><br>
 
-<Center><h2> Lab 7</h2></Center>
+<Center><p style="font-size: large;"> Lab 7</p></Center>
 <Center><p style = "color:green;font-size:18px;"> Part (a): Grid Localization with the Bayes Filter </p></Center>
 To start with this portion of the lab, I first performed the usual steps of downloading the base code and running the setup script on the VM. Upon opening up the Jupyter notebook, I ran the provided code with the plotter tool open and got to work on the pseudocode for the localization functions using the odometry model. <br> When running the provided trajectory code, I saw that the robot was able to successfully navigate around one of the obstacles, albeit rather slowly. The robot's odometry readings were also quite far off from the robot's ground truth location - maybe a probabilistic model can fix this!<br>
 <img src="plotter.png"><br>
@@ -2012,7 +2012,7 @@ def plot_uncertainty(self,t,vars):
 ```
 As seen in the uncertainty plots below, all of the standard deviations of the state variables except for Z eventually converge to a steady value and do not change. Unlike the other variables, the uncertainty in Z continues to increase over time and does not settle down at a specific value because the Z estimate is not being updated by any sensor measurements, so the uncertainty continues to compound over time. The scale of the plot seems a bit wonky, but this at least provides more evidence to show that Z is the unobservable state.<br>
 <img src='uncertainty.png'><br><br>
-<b><p style='color: green;'> Adding LQR Control:</p></b><br>
+<b><p style="color: green;"> Adding LQR Control:</p></b><br>
 As suggested in the lab instructions, I then changed the default controller to an LQR controller rather than just placing the poles 'manually.' To do this, I just copied over my code from Lab 11b that successfully implemented the LQR controller. To start with LQR control, I just used the values from the previous lab that worked well for stabilizing the system (albeit this one was semi-optimized for a system without noise, so we'll have to see how it performs when adding process noise). After settling on these values, implementing LQR control was easy: <br>
 ```Python
 Q = np.matrix([
